@@ -1,0 +1,10 @@
+#/bin/bash
+
+g++ -m64 -pthread -pipe -std=c++14 -g \
+    -I../ \
+    -I../RakNet/Source/ \
+    -I../boost/ \
+    ./rpcdemo.cpp \
+    ../RakNet/Source/*.cpp \
+    ../*.cpp \
+    -o bin/raknet-demo
