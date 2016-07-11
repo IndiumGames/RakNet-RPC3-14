@@ -239,7 +239,7 @@ public:
 	///
 	/// \param[in] uniqueIdentifier parameter of the same name passed to RegisterFunction() on the remote system
 	template<typename... Args>
-	bool Call(const char *uniqueIdentifier, Args&... args) {
+	bool Call(const char *uniqueIdentifier, const Args&... args) {
 		return _RPC3::RpcCall::Call(this, uniqueIdentifier, sizeof...(Args), true, args...);
 	}
 
@@ -274,7 +274,7 @@ public:
 	/// \param[in] broadcast See SetRecipientAddress()
 	/// \param[in] networkID See SetRecipientObject()
 	template<typename... Args>
-	bool CallExplicit(const char *uniqueIdentifier, const CallExplicitParameters * const callExplicitParameters, Args&... args) {
+	bool CallExplicit(const char *uniqueIdentifier, const CallExplicitParameters * const callExplicitParameters, const Args&... args) {
 		SetTimestamp(callExplicitParameters->timeStamp);
 		SetSendParams(callExplicitParameters->priority, callExplicitParameters->reliability, callExplicitParameters->orderingChannel);
 		SetRecipientAddress(callExplicitParameters->systemAddress, callExplicitParameters->broadcast);
@@ -283,13 +283,13 @@ public:
 	}
 
 	template<typename... Args>
-	bool CallC(const char *uniqueIdentifier, Args&... args) {
+	bool CallC(const char *uniqueIdentifier, const Args&... args) {
 		SetRecipientObject(UNASSIGNED_NETWORK_ID);
 		return Call(uniqueIdentifier, args...);
 	}
 
 	template<typename... Args>
-	bool CallCPP(const char *uniqueIdentifier, NetworkID nid, Args&... args) {
+	bool CallCPP(const char *uniqueIdentifier, NetworkID nid, const Args&... args) {
 		SetRecipientObject(nid);
 		return Call(uniqueIdentifier, args...);
 	}
@@ -306,7 +306,7 @@ public:
 	/// \param[in] sharedIdentifier parameter of the same name passed to RegisterSlot() on the remote system
 	
 	template<typename... Args>
-	bool Signal(const char *sharedIdentifier, Args&... args) {
+	bool Signal(const char *sharedIdentifier, const Args&... args) {
 		return _RPC3::RpcCall::Call(this, sharedIdentifier, sizeof...(Args), false, args...);
 	}
 	
@@ -329,7 +329,7 @@ public:
 
 	/// Same as Signal(), but you are forced to specify the remote system parameters
 	template<typename... Args>
-	bool SignalExplicit(const char *sharedIdentifier, const SignalExplicitParameters * const signalExplicitParameters, Args&... args){
+	bool SignalExplicit(const char *sharedIdentifier, const SignalExplicitParameters * const signalExplicitParameters, const Args&... args){
 		SetTimestamp(signalExplicitParameters->timeStamp);
 		SetSendParams(signalExplicitParameters->priority, signalExplicitParameters->reliability, signalExplicitParameters->orderingChannel);
 		SetRecipientAddress(signalExplicitParameters->systemAddress, signalExplicitParameters->broadcast);
