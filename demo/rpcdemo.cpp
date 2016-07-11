@@ -16,6 +16,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <memory>
+#include <iostream>
 
 #include "Kbhit.h"
 #include "BitStream.h"
@@ -59,7 +60,7 @@ public:
     ClassC() : c(3) {}
     
     virtual void TestSlot(void) {
-        printf("ClassC::TestSlot\n");
+        std::cout << "ClassC::TestSlot" << std::endl;
     }
     
     virtual void ClassMemberFunc(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
@@ -92,7 +93,7 @@ public:
     }
     
     virtual void TestSlot(void) {
-        printf("ClassD::TestSlot\n");
+        std::cout << "ClassD::TestSlot" << std::endl;
     }
     
     char tenBytes[10];
@@ -108,21 +109,22 @@ void BaseClassB::ClassMemberFunc(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
                     RakNet::RPC3 *rpcFromNetwork) {
     
     if (rpcFromNetwork==0) {
-        printf("\nBaseClassB::ClassMemberFunc called locally\n");
+        std::cout << "BaseClassB::ClassMemberFunc called locally" << std::endl;
     }
     else {
-        printf("\nBaseClassB::ClassMemberFunc called from %s\n",
-                            rpcFromNetwork->GetLastSenderAddress().ToString());
+        std::cout << "BaseClassB::ClassMemberFunc called from " <<
+                rpcFromNetwork->GetLastSenderAddress().ToString() << std::endl;
     }
     
-    printf("a1=%i a2=%i c1=%i\n", a1->a, a2.a, c1->c);
-    printf("d1::Verify=%i\n", d1->Verify());
+    std::cout << "a1=" << a1->a << " a2=" << a2.a <<
+                                            " c1=" << c1->c << std::endl;
+    std::cout << "d1::Verify=" << d1->Verify() << std::endl;
     
     RakNet::RakString rs1, rs2;
     bs1->Read(rs1);
     bs2.Read(rs2);
-    printf("rs1=%s\n", rs1.C_String());
-    printf("rs2=%s\n", rs2.C_String());
+    std::cout << "rs1=" << rs1.C_String() << std::endl;
+    std::cout << "rs2=" << rs2.C_String() << std::endl;
 }
 
 /*
@@ -132,43 +134,43 @@ void BaseClassB::ClassMemberFunc(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
 void ClassC::ClassMemberFunc(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
                     ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
                     RakNet::RPC3 *rpcFromNetwork) {
-    printf("\nClassC::ClassMemberFunc\n");
+    std::cout << "ClassC::ClassMemberFunc" << std::endl;
     BaseClassB::ClassMemberFunc(a1, a2, c1, d1, bs1, bs2, rpcFromNetwork);
 }
 
 void ClassC::ClassMemberFunc2(RakNet::RPC3 *rpcFromNetwork) {
-    printf("\nClassC::ClassMemberFunc2\n");
+    std::cout << "ClassC::ClassMemberFunc2" << std::endl;
 }
 
 
 void CFunc(RakNet::RakString rakString, int intArray[10], ClassC *c1,
                             const char *str, RakNet::RPC3 *rpcFromNetwork) {
     if (rpcFromNetwork == 0) {
-        printf("\nCFunc called locally\n");
+        std::cout << "CFunc called locally" << std::endl;
     }
     else {
-        printf("\nCFunc called from %s\n",
-                            rpcFromNetwork->GetLastSenderAddress().ToString());
+        std::cout << "CFunc called from " <<
+                rpcFromNetwork->GetLastSenderAddress().ToString() << std::endl;
     }
     
-    printf("rakString=%s\n", rakString.C_String());
+    std::cout << "rakString=" << rakString.C_String() << std::endl;
     
-    printf("intArray = ");
+    std::cout << "intArray = ";
     for (int i = 0; i < 10; i++) {
-        printf("%i ", intArray[i]);
+        std::cout << intArray[i] << " ";
     }
-    printf("\n");
+    std::cout << "" << std::endl;
     
-    printf("c1=%i\n", c1->c);
-    printf("str=%s\n", str);
+    std::cout << "c1=" << c1->c << std::endl;
+    std::cout << "str=" << str << std::endl;
 }
 
 int main(int argc, char *argv[]) {
-    printf("Demonstration of the RPC3 plugin.\n");
+    std::cout << "Demonstration of the RPC3 plugin." << std::endl;
     
     bool isServer = false;
     int opt;
-
+    
     while ((opt = getopt (argc, argv, "sc")) != -1) {
         switch (opt) {
             case 's':
@@ -194,26 +196,26 @@ int main(int argc, char *argv[]) {
     RakNet::RakPeerInterface *rakPeer = RakNet::RakPeerInterface::GetInstance();
     
     if (isServer) {
-        RakNet::SocketDescriptor socketDescriptor(50000, 0);
+        RakNet::SocketDescriptor socketDescriptor(60000, 0);
         // Only IPV4 supports broadcast on 255.255.255.255
         socketDescriptor.socketFamily = AF_INET;
         
         rakPeer->Startup(10, &socketDescriptor, 1);
         rakPeer->SetMaximumIncomingConnections(10);
         
-        printf("Server started.\n");
+        std::cout << "Server started." << std::endl;
     }
     else {
-        RakNet::SocketDescriptor socketDescriptor(0, 0);
+        RakNet::SocketDescriptor socketDescriptor(60001, 0);
         // Only IPV4 supports broadcast on 255.255.255.255
         socketDescriptor.socketFamily = AF_INET;
         
         rakPeer->Startup(1, &socketDescriptor, 1);
 
         // Send out a LAN broadcast to find other instances on the same computer
-        rakPeer->Ping("255.255.255.255", 50000, true, 0);
+        rakPeer->Ping("255.255.255.255", 60000, true, 0);
 
-        printf("Client started. Will automatically connect to running servers.\n");
+        std::cout << "Client started. Will automatically connect to running servers." << std::endl;
     }
     
     // Add RPC3 plugin.
@@ -253,16 +255,16 @@ int main(int argc, char *argv[]) {
                 rakPeer->DeallocatePacket(packet), packet=rakPeer->Receive()) {
             switch (packet->data[0]) {
                 case ID_DISCONNECTION_NOTIFICATION:
-                    printf("ID_DISCONNECTION_NOTIFICATION\n");
+                    std::cout << "ID_DISCONNECTION_NOTIFICATION" << std::endl;
                     break;
                 case ID_ALREADY_CONNECTED:
-                    printf("ID_ALREADY_CONNECTED\n");
+                    std::cout << "ID_ALREADY_CONNECTED" << std::endl;
                     break;
                 case ID_CONNECTION_ATTEMPT_FAILED:
-                    printf("Connection attempt failed\n");
+                    std::cout << "Connection attempt failed" << std::endl;
                     break;
                 case ID_NO_FREE_INCOMING_CONNECTIONS:
-                    printf("ID_NO_FREE_INCOMING_CONNECTIONS\n");
+                    std::cout << "ID_NO_FREE_INCOMING_CONNECTIONS" << std::endl;
                     break;
                 case ID_UNCONNECTED_PONG:
                     // Found the server
@@ -271,7 +273,7 @@ int main(int argc, char *argv[]) {
                     break;
                 case ID_CONNECTION_REQUEST_ACCEPTED:
                     // This tells the client they have connected
-                    printf("ID_CONNECTION_REQUEST_ACCEPTED\n");
+                    std::cout << "ID_CONNECTION_REQUEST_ACCEPTED" << std::endl;
                     break;
                 case ID_NEW_INCOMING_CONNECTION: {
                     RakNet::BitStream testBitStream1, testBitStream2;
@@ -326,28 +328,28 @@ int main(int argc, char *argv[]) {
                     // Recipient system returned an error
                     switch (packet->data[1]) {
                         case RakNet::RPC_ERROR_NETWORK_ID_MANAGER_UNAVAILABLE:
-                            printf("RPC_ERROR_NETWORK_ID_MANAGER_UNAVAILABLE\n");
+                            std::cout << "RPC_ERROR_NETWORK_ID_MANAGER_UNAVAILABLE" << std::endl;
                             break;
                         case RakNet::RPC_ERROR_OBJECT_DOES_NOT_EXIST:
-                            printf("RPC_ERROR_OBJECT_DOES_NOT_EXIST\n");
+                            std::cout << "RPC_ERROR_OBJECT_DOES_NOT_EXIST" << std::endl;
                             break;
                         case RakNet::RPC_ERROR_FUNCTION_INDEX_OUT_OF_RANGE:
-                            printf("RPC_ERROR_FUNCTION_INDEX_OUT_OF_RANGE\n");
+                            std::cout << "RPC_ERROR_FUNCTION_INDEX_OUT_OF_RANGE" << std::endl;
                             break;
                         case RakNet::RPC_ERROR_FUNCTION_NOT_REGISTERED:
-                            printf("RPC_ERROR_FUNCTION_NOT_REGISTERED\n");
+                            std::cout << "RPC_ERROR_FUNCTION_NOT_REGISTERED" << std::endl;
                             break;
                         case RakNet::RPC_ERROR_FUNCTION_NO_LONGER_REGISTERED:
-                            printf("RPC_ERROR_FUNCTION_NO_LONGER_REGISTERED\n");
+                            std::cout << "RPC_ERROR_FUNCTION_NO_LONGER_REGISTERED" << std::endl;
                             break;
                         case RakNet::RPC_ERROR_CALLING_CPP_AS_C:
-                            printf("RPC_ERROR_CALLING_CPP_AS_C\n");
+                            std::cout << "RPC_ERROR_CALLING_CPP_AS_C" << std::endl;
                             break;
                         case RakNet::RPC_ERROR_CALLING_C_AS_CPP:
-                            printf("RPC_ERROR_CALLING_C_AS_CPP\n");
+                            std::cout << "RPC_ERROR_CALLING_C_AS_CPP" << std::endl;
                             break;
                     }
-                    printf("Function: %s", packet->data + 2);
+                    std::cout << "Function: " << packet->data + 2 << std::endl;
                 }
             }
         }

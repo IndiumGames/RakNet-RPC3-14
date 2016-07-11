@@ -21,7 +21,7 @@ Go to demo folder and compile server and client:
 ./compile
 ```
 
-Then run the server and client with:
+Then run the server and client with (stop with Ctrl+C):
 ```
 ./run
 ```

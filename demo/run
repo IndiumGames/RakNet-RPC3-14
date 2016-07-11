@@ -1,0 +1,20 @@
+#/bin/bash
+
+# When this exits, exit all back ground process also.
+trap 'kill $(jobs -p)' EXIT
+
+# Create empty log files for server and client.
+truncate -s 0 bin/server.log
+truncate -s 0 bin/client.log
+
+
+./bin/raknet-demo -s > bin/server.log &
+
+sleep 2s
+
+./bin/raknet-demo -c > bin/client.log &
+    #& column -t -s '|' bin/server.log bin/client.log
+    # \
+    #& fg
+    
+tail -f bin/server.log -f bin/client.log
