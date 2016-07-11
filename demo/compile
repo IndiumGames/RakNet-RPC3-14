@@ -3,7 +3,6 @@
 g++ -m64 -pthread -pipe -std=c++14 -g \
     -I../ \
     -I../RakNet/Source/ \
-    -I../boost_1_43_0/ \
     ./rpcdemo.cpp \
     ../RakNet/Source/*.cpp \
     ../*.cpp \
