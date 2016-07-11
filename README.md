@@ -9,7 +9,7 @@ This should work as drop-in replacement for your current RakNet project with the
 Most of the code is unmodified biggest changes are in RPC3_STD.h, which replaces the old RPC3_Boost.h file.
 
 
-Tested with Linux and GCC 5.3.1
+Tested with GCC 5.3.1 and Clang 3.7.0 on Linux.
 
 
 ## Run the demo
