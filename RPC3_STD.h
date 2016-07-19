@@ -16,6 +16,9 @@
 #include <iterator>
 #include <vector>
 
+#include <iostream>
+#include <cxxabi.h>
+
 #include "NetworkIDManager.h"
 #include "NetworkIDObject.h"
 #include "BitStream.h"
@@ -155,6 +158,7 @@ struct ReadBitstream
 		BitSize_t numBitsUsed;
 		bitStream.ReadCompressed(numBitsUsed);
 		bitStream.Read(t,numBitsUsed);
+		printf("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB%s\n", t->GetData());
 	}
 };
 
@@ -472,11 +476,14 @@ struct WriteBitstream
 	static void applyArray(RakNet::BitStream &bitStream, RakNet::BitStream* t) {apply(bitStream,t);}
 	static void apply(RakNet::BitStream &bitStream, RakNet::BitStream* t)
 	{
+		printf("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW1 %s\n", t->GetData());
 		BitSize_t oldReadOffset = t->GetReadOffset();
 		t->ResetReadPointer();
 		bitStream.WriteCompressed(t->GetNumberOfBitsUsed());
 		bitStream.Write(t);
 		t->SetReadOffset(oldReadOffset);
+		
+		printf("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW2 %s\n", bitStream.GetData());
 	}
 };
 
@@ -485,7 +492,10 @@ struct WritePtr
 	template <typename T2>
 	static inline void applyArray(RakNet::BitStream &bitStream, T2 *t) {bitStream << (*t);}
 	template <typename T2>
-	static inline void apply(RakNet::BitStream &bitStream, T2 *t) {bitStream << (*t);}
+	static inline void apply(RakNet::BitStream &bitStream, T2 *t) {
+		std::cout << "ffffffffffffffffffffffff4   " << typeid(t).name() << std::endl;
+		std::cout << "ffffffffffffffffffffffff5   " << typeid(&bitStream).name() << std::endl;
+		bitStream << (*t);}
 
 	static inline void apply(RakNet::BitStream &bitStream, char *t) {bitStream << t;}
 
@@ -553,6 +563,10 @@ struct WriteWithoutNetworkIDNoPtr
 {
 	static void apply(RakNet::BitStream &bitStream, T& t)
 	{
+		char *realname = abi::__cxa_demangle(typeid(t).name(), 0, 0, 0);
+		//char *realname2 = abi::__cxa_demangle(typeid(std::remove_pointer<T>::type).name(), 0, 0, 0);
+		std::cout << "ffffffffffffffffffffffff3   " << realname << std::endl;
+		//std::cout << "ffffffffffffffffffffffff3.1   " << realname2 << std::endl;
 		DoWrite< typename std::remove_pointer<T>::type >::type::apply(bitStream,&t);
 	}
 };
@@ -656,7 +670,7 @@ FunctionPointer GetBoundPointer(Function f) {
 struct RpcCall {
 	template<typename Rpc, typename... Args>
 	static inline bool Call(Rpc *rpc, const char *identifier, int argCount,
-													bool isCall, Args&... args) {
+													bool isCall, const Args&... args) {
 		RakNet::BitStream bitStream;
 		bool result = false;
 
@@ -679,8 +693,9 @@ struct RpcCall {
 	template<typename Rpc, typename Arg>
 	static inline void Call(Rpc *rpc, const char *identifier,
 					RakNet::BitStream &bitStream, bool &result, int argCount,
-					bool isCall, Arg &arg) {
-		_RPC3::SerializeCallParameterBranch<Arg>::type::apply(bitStream, arg);
+					bool isCall, const Arg &arg) {
+		typedef typename std::remove_reference<decltype(arg)>::type arg_type_no_ref;
+		_RPC3::SerializeCallParameterBranch<arg_type_no_ref>::type::apply(bitStream, arg);
         
 		RpcCall::Call(rpc, identifier, bitStream, result, argCount, isCall);
 	}
@@ -688,8 +703,15 @@ struct RpcCall {
 	template<std::size_t I = 0, typename Rpc, typename Arg, typename... Args>
 	static inline typename std::enable_if<I < sizeof...(Args), void>::type
 			Call(Rpc *rpc, const char *identifier, RakNet::BitStream &bitStream,
-				bool &result, int argCount, bool isCall, Arg &arg, Args&... args) {
-		_RPC3::SerializeCallParameterBranch<Arg>::type::apply(bitStream, arg);
+				bool &result, int argCount, bool isCall, const Arg &arg, const Args&... args) {
+		typedef typename std::remove_reference<decltype(arg)>::type arg_type_no_ref;
+		
+		char *realname = abi::__cxa_demangle(typeid(arg).name(), 0, 0, 0);
+		char *realname2 = abi::__cxa_demangle(typeid(arg_type_no_ref).name(), 0, 0, 0);
+  	
+		std::cout << "ffffffffffffffffffffffff1   " << realname << std::endl;
+		std::cout << "ffffffffffffffffffffffff2   " << realname2 << std::endl;
+		_RPC3::SerializeCallParameterBranch<arg_type_no_ref>::type::apply(bitStream, arg);
         
 		RpcCall::Call(rpc, identifier, bitStream, result, argCount, isCall, args...);
 	}

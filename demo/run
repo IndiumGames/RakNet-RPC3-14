@@ -8,13 +8,10 @@ truncate -s 0 bin/server.log
 truncate -s 0 bin/client.log
 
 
-./bin/raknet-demo -s > bin/server.log &
+./bin/raknet-demo -s | c++filt > bin/server.log &
 
 sleep 2s
 
-./bin/raknet-demo -c > bin/client.log &
-    #& column -t -s '|' bin/server.log bin/client.log
-    # \
-    #& fg
+./bin/raknet-demo -c | c++filt > bin/client.log &
     
 tail -f bin/server.log -f bin/client.log
