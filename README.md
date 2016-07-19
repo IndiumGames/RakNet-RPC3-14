@@ -16,12 +16,12 @@ Tested with GCC 5.3.1 and Clang 3.7.0 on Linux.
 
 Download RakNet to the root of this repository.
 
-Go to demo folder and compile server and client:
+Compile server and client:
 ```
-./compile
+./demo/compile
 ```
 
 Then run the server and client with (stop with Ctrl+C):
 ```
-./run
+./demo/run
 ```

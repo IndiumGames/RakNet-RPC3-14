@@ -4,14 +4,14 @@
 trap 'kill $(jobs -p)' EXIT
 
 # Create empty log files for server and client.
-truncate -s 0 bin/server.log
-truncate -s 0 bin/client.log
+truncate -s 0 demo/bin/server.log
+truncate -s 0 demo/bin/client.log
 
 
-./bin/raknet-demo -s | c++filt > bin/server.log &
+./demo/bin/raknet-demo -s | c++filt > demo/bin/server.log &
 
 sleep 2s
 
-./bin/raknet-demo -c | c++filt > bin/client.log &
+./demo/bin/raknet-demo -c | c++filt > demo/bin/client.log &
     
-tail -f bin/server.log -f bin/client.log
+tail -f demo/bin/server.log -f demo/bin/client.log
