@@ -2,8 +2,9 @@
 
 g++ -m64 -pthread -pipe -std=c++14 -g \
     -I./ \
+    -I./demo/ \
     -I./RakNet/Source/ \
-    ./demo/rpcdemo.cpp \
+    ./demo/*.cpp \
     ./RakNet/Source/*.cpp \
     ./*.cpp \
     -o demo/bin/raknet-demo

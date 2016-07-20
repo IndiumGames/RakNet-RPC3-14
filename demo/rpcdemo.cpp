@@ -1,6 +1,6 @@
 /*
  *  Original Copyright (c) 2014, Oculus VR, Inc.
- *  Modified Copyright (c) 2016, Indium Games.
+ *  Modified Copyright (c) 2016, Indium Games
  *  All rights reserved.
  *
  *  This source code is licensed under the BSD-style license found in the
@@ -28,142 +28,8 @@
 #include "GetTime.h"
 #include "Gets.h"
 
-
-
-class ClassC;
-class ClassD;
-
-class BaseClassA {
-    
-public:
-    BaseClassA() :a(1) {}
-    
-    int a;
-};
-
-class BaseClassB {
-    
-public:
-    BaseClassB() : b(2) {}
-    
-    virtual void ClassMemberFunc(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
-                    ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
-                    RakNet::RPC3 *rpcFromNetwork);
-    
-    int b;
-};
-
-class ClassC
-    : public BaseClassA, public BaseClassB, public RakNet::NetworkIDObject {
-        
-public:
-    ClassC() : c(3) {}
-    
-    virtual void TestSlot(void) {
-        std::cout << "ClassC::TestSlot" << std::endl;
-    }
-    
-    virtual void ClassMemberFunc(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
-                        ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
-                        RakNet::RPC3 *rpcFromNetwork);
-    
-    void ClassMemberFunc2(RakNet::RPC3 *rpcFromNetwork);
-    
-    int c;
-};
-
-class ClassD : public BaseClassA, public RakNet::NetworkIDObject {
-    
-public:
-    ClassD() {
-        for (int i=0; i < 10; i++) {
-            tenBytes[i]=i;
-        }
-    }
-    
-    bool Verify(void) {
-        for (int i=0; i < 10; i++) {
-            if (tenBytes[i]!=i) {
-                return false;
-            }
-            else {
-                return true;
-            }
-        }
-    }
-    
-    virtual void TestSlot(void) {
-        std::cout << "ClassD::TestSlot" << std::endl;
-    }
-    
-    char tenBytes[10];
-};
-
-/*
- * rpcFromNetwork will be automatically set to the rpc plugin instance when this
- * function is called at a remote system. When calling locally you can set it to
- * 0, so you know if it is called loacally or remotely.
- */
-void BaseClassB::ClassMemberFunc(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
-                    ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
-                    RakNet::RPC3 *rpcFromNetwork) {
-    
-    if (rpcFromNetwork==0) {
-        std::cout << "BaseClassB::ClassMemberFunc called locally" << std::endl;
-    }
-    else {
-        std::cout << "BaseClassB::ClassMemberFunc called from " <<
-                rpcFromNetwork->GetLastSenderAddress().ToString() << std::endl;
-    }
-    
-    std::cout << "a1=" << a1->a << " a2=" << a2.a <<
-                                            " c1=" << c1->c << std::endl;
-    std::cout << "d1::Verify=" << d1->Verify() << std::endl;
-    
-    RakNet::RakString rs1, rs2;
-    bs1->Read(rs1);
-    bs2.Read(rs2);
-    std::cout << "rs1=" << rs1.C_String() << std::endl;
-    std::cout << "rs2=" << rs2.C_String() << std::endl;
-}
-
-/*
- * ClassC and ClassD derive from NetworkIDObject, so they cannot be passed as
- * references. A pointer is required to do the object lookup.
- */
-void ClassC::ClassMemberFunc(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
-                    ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
-                    RakNet::RPC3 *rpcFromNetwork) {
-    std::cout << "ClassC::ClassMemberFunc" << std::endl;
-    BaseClassB::ClassMemberFunc(a1, a2, c1, d1, bs1, bs2, rpcFromNetwork);
-}
-
-void ClassC::ClassMemberFunc2(RakNet::RPC3 *rpcFromNetwork) {
-    std::cout << "ClassC::ClassMemberFunc2" << std::endl;
-}
-
-
-void CFunc(RakNet::RakString rakString, int intArray[10], ClassC *c1,
-                            const char *str, RakNet::RPC3 *rpcFromNetwork) {
-    if (rpcFromNetwork == 0) {
-        std::cout << "CFunc called locally" << std::endl;
-    }
-    else {
-        std::cout << "CFunc called from " <<
-                rpcFromNetwork->GetLastSenderAddress().ToString() << std::endl;
-    }
-    
-    std::cout << "rakString=" << rakString.C_String() << std::endl;
-    
-    std::cout << "intArray = ";
-    for (int i = 0; i < 10; i++) {
-        std::cout << intArray[i] << " ";
-    }
-    std::cout << "" << std::endl;
-    
-    std::cout << "c1=" << c1->c << std::endl;
-    std::cout << "str=" << str << std::endl;
-}
+#include "democlasses.h"
+#include "democfunctions.h"
 
 int main(int argc, char *argv[]) {
     std::cout << "Demonstration of the RPC3 plugin." << std::endl;
