@@ -155,7 +155,6 @@ struct ReadBitstream
 		BitSize_t numBitsUsed;
 		bitStream.ReadCompressed(numBitsUsed);
 		bitStream.Read(t,numBitsUsed);
-		printf("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB%s\n", t->GetData());
 	}
 };
 
