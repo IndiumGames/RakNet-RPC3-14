@@ -3,15 +3,11 @@
 # When this exits, exit all back ground process also.
 trap 'kill $(jobs -p)' EXIT
 
-# Create empty log files for server and client.
-truncate -s 0 tests/bin/server.log
-truncate -s 0 tests/bin/client.log
+# Create empty log file.
+truncate -s 0 tests/bin/test.log
+truncate -s 0 tests/bin/garbage.txt
 
 
-./tests/bin/raknet-tests -s > tests/bin/server.log &
+./tests/bin/raknet-tests --client-count 20 --call-count 20 > tests/bin/test.log &
 
-sleep 2s
-
-./tests/bin/raknet-tests -c > tests/bin/client.log &
-    
-tail -f tests/bin/server.log -f tests/bin/client.log
+tail -f tests/bin/test.log

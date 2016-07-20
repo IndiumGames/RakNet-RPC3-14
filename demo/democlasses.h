@@ -18,6 +18,7 @@
 #include "RPC3.h"
 #include "RakPeerInterface.h"
 #include "NetworkIDObject.h"
+#include "GetTime.h"
 
 class ClassC;
 class ClassD;
@@ -39,6 +40,10 @@ public:
                     ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
                     RakNet::RPC3 *rpcFromNetwork);
     
+    virtual void ClassMemberFuncTest(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
+                    ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
+                    RakNet::RPC3 *rpcFromNetwork);
+    
     int b;
 };
 
@@ -51,8 +56,15 @@ public:
     virtual void TestSlot(void) {
         std::cout << "ClassC::TestSlot" << std::endl;
     }
+    virtual void TestSlotTest(void) {
+        std::cout << "\033[1;33m     ClassC::TestSlot signal received timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m") << std::endl;
+    }
     
     virtual void ClassMemberFunc(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
+                        ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
+                        RakNet::RPC3 *rpcFromNetwork);
+                        
+    virtual void ClassMemberFuncTest(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
                         ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
                         RakNet::RPC3 *rpcFromNetwork);
     
@@ -83,6 +95,10 @@ public:
     
     virtual void TestSlot(void) {
         std::cout << "ClassD::TestSlot" << std::endl;
+    }
+    
+    virtual void TestSlotTest(void) {
+        std::cout << "\033[1;33m     ClassD::TestSlot signal received timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m") << std::endl;
     }
     
     char tenBytes[10];

@@ -25,7 +25,8 @@ void BaseClassB::ClassMemberFunc(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
     }
     else {
         std::cout << "BaseClassB::ClassMemberFunc called from " <<
-                rpcFromNetwork->GetLastSenderAddress().ToString() << std::endl;
+                rpcFromNetwork->GetLastSenderAddress().ToString() <<
+                "  timestamp: " << rpcFromNetwork->GetLastSenderTimestamp() << std::endl;
     }
     
     std::cout << "a1=" << a1->a << " a2=" << a2.a <<
@@ -38,6 +39,24 @@ void BaseClassB::ClassMemberFunc(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
     std::cout << "rs1=" << rs1.C_String() << std::endl;
     std::cout << "rs2=" << rs2.C_String() << std::endl;
 }
+void BaseClassB::ClassMemberFuncTest(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
+                    ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
+                    RakNet::RPC3 *rpcFromNetwork) {
+    
+    if (rpcFromNetwork==0) {
+        std::cout << "BaseClassB::ClassMemberFuncTest called locally" << std::endl;
+    }
+    else {
+        std::cout << "BaseClassB::ClassMemberFuncTest called from " <<
+                rpcFromNetwork->GetLastSenderAddress().ToString() << std::endl;
+    }
+    
+    RakNet::RakString rs1, rs2;
+    bs1->Read(rs1);
+    bs2.Read(rs2);
+    std::cout << rs1.C_String() << std::endl;
+    std::cout << rs2.C_String() << "\033[1;32m    " << RakNet::GetTimeUS() << "     \033[0m" << std::endl;
+}
 
 /*
  * ClassC and ClassD derive from NetworkIDObject, so they cannot be passed as
@@ -48,6 +67,11 @@ void ClassC::ClassMemberFunc(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
                     RakNet::RPC3 *rpcFromNetwork) {
     std::cout << "ClassC::ClassMemberFunc" << std::endl;
     BaseClassB::ClassMemberFunc(a1, a2, c1, d1, bs1, bs2, rpcFromNetwork);
+}
+void ClassC::ClassMemberFuncTest(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
+                    ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
+                    RakNet::RPC3 *rpcFromNetwork) {
+    BaseClassB::ClassMemberFuncTest(a1, a2, c1, d1, bs1, bs2, rpcFromNetwork);
 }
 
 void ClassC::ClassMemberFunc2(RakNet::RPC3 *rpcFromNetwork) {
