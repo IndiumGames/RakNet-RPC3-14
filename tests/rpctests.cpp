@@ -192,6 +192,7 @@ int main(int argc, char *argv[]) {
     ClassC *serverCPtr = &c[0];
     ClassD *serverDPtr = &d[0];
     RakNet::RPC3 *emptyRpc = 0;
+    RakNet::RPC3 *serverRpc = rpcPlugins[0];
     
     RakNet::Packet *packet;
     while (1) {
@@ -226,9 +227,9 @@ int main(int argc, char *argv[]) {
                         if (!clientCount) {
                             // If all clients connected.
                             
-                            serverThread = std::thread([&, peerCount, callCount] () {
+                            serverThread = std::thread([serverAPtr, serverBPtr, serverCPtr, serverDPtr, serverRpc, emptyRpc, peerCount, callCount] () {
                                 COUT << "\033[0;31m     Starting server thread to do RPC calls, timestamp: " << RakNet::GetTimeUS() << "     \033[0m" << ENDL;
-                                unsigned int count = peerCount - 1;
+                                unsigned int count = callCount;
                                 while (count) {
                                     for (size_t i = 0; i < peerCount - 1; i++) {
                                         COUT << "\033[0;35m    CCCCCCCCCCCCCCCC " << count << "." << i << "     \033[0m" << ENDL;
@@ -239,10 +240,10 @@ int main(int argc, char *argv[]) {
                                         testBitStream2.Write("\033[1;32m     CPP Remote call timestamp:      \033[0m");
                                         RakNet::BitStream *testBitStream1Ptr = &testBitStream1;
                                         
-                                        c[0].ClassMemberFuncTest(serverAPtr, a[0], serverCPtr, serverDPtr, testBitStream1Ptr,
+                                        serverCPtr->ClassMemberFuncTest(serverAPtr, *serverAPtr, serverCPtr, serverDPtr, testBitStream1Ptr,
                                                                                 testBitStream2, emptyRpc);
-                                        rpcPlugins[0]->CallCPP("&ClassC::ClassMemberFuncTest", c[0].GetNetworkID(),
-                                                                serverAPtr, a[0], serverCPtr, RakNet::_RPC3::Deref(serverDPtr),
+                                        serverRpc->CallCPP("&ClassC::ClassMemberFuncTest", serverCPtr->GetNetworkID(),
+                                                                serverAPtr, *serverAPtr, serverCPtr, serverDPtr,
                                                                 testBitStream1Ptr, testBitStream2, emptyRpc);
                                         
                                         
@@ -255,20 +256,20 @@ int main(int argc, char *argv[]) {
                                         const char *str = "\033[1;32m     C Remote call timestamp:      \033[0m";
                                         
                                         CFuncTest(rs, intArray, serverCPtr, str, emptyRpc);
-                                        rpcPlugins[0]->CallC("CFuncTest", rs,
+                                        serverRpc->CallC("CFuncTest", rs,
                                                 RakNet::_RPC3::PtrToArray(10, intArray), serverCPtr, str, emptyRpc);
                                                 
                                         
                                         COUT << "\033[1;33m     TestSlot signal sent timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m") << ENDL;
-                                        rpcPlugins[0]->Signal("TestSlotTest");
+                                        serverRpc->Signal("TestSlotTest");
                                     }
                                     count--;
-                                    //std::this_thread::sleep_for(std::chrono::milliseconds(16));
+                                    //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                                 }
                                 
                                 COUT << "\033[0;31m     All RPC calls sent, timestamp: "  << RakNet::GetTimeUS() << "     \033[0m" << ENDL;
                             });
-                            serverThread.join();
+                            serverThread.detach();
                             COUT << "\033[0;35m     Server thread started     \033[0m" << ENDL;
                         }
                         break;

@@ -53,10 +53,10 @@ class ClassC
 public:
     ClassC() :BaseClassA(), BaseClassB(), RakNet::NetworkIDObject(), c(3) {}
     
-    virtual void TestSlot(void) {
+    virtual void TestSlot() {
         std::cout << "ClassC::TestSlot" << std::endl;
     }
-    virtual void TestSlotTest(void) {
+    virtual void TestSlotTest() {
         std::cout << "\033[1;33m     ClassC::TestSlot signal received timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m") << std::endl;
     }
     
@@ -82,7 +82,7 @@ public:
         }
     }
     
-    bool Verify(void) {
+    bool Verify() {
         for (int i=0; i < 10; i++) {
             if (tenBytes[i]!=i) {
                 return false;
@@ -91,13 +91,14 @@ public:
                 return true;
             }
         }
+        return false;
     }
     
-    virtual void TestSlot(void) {
+    virtual void TestSlot() {
         std::cout << "ClassD::TestSlot" << std::endl;
     }
     
-    virtual void TestSlotTest(void) {
+    virtual void TestSlotTest() {
         std::cout << "\033[1;33m     ClassD::TestSlot signal received timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m") << std::endl;
     }
     
