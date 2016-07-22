@@ -186,6 +186,13 @@ int main(int argc, char *argv[]) {
     COUT << "Clients will automatically connect to running server." << ENDL;
     COUT << "Running " << callCount << " rounds." << ENDL;
 
+    // The original version of RPC3 requires these pointers as lvalue.
+    BaseClassA *serverAPtr = &a[0];
+    BaseClassB *serverBPtr = &b[0];
+    ClassC *serverCPtr = &c[0];
+    ClassD *serverDPtr = &d[0];
+    RakNet::RPC3 *emptyRpc = 0;
+    
     RakNet::Packet *packet;
     while (1) {
         for (std::size_t i = 0; i < peerCount; i++) {
@@ -230,12 +237,13 @@ int main(int argc, char *argv[]) {
                                         std::string strCpp("\033[1;32m     CPP Function call timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m"));
                                         testBitStream1.Write(strCpp.c_str());
                                         testBitStream2.Write("\033[1;32m     CPP Remote call timestamp:      \033[0m");
+                                        RakNet::BitStream *testBitStream1Ptr = &testBitStream1;
                                         
-                                        c[0].ClassMemberFuncTest(&a[0], a[0], &c[0], &d[0], &testBitStream1,
-                                                                                testBitStream2, 0);
+                                        c[0].ClassMemberFuncTest(serverAPtr, a[0], serverCPtr, serverDPtr, testBitStream1Ptr,
+                                                                                testBitStream2, emptyRpc);
                                         rpcPlugins[0]->CallCPP("&ClassC::ClassMemberFuncTest", c[0].GetNetworkID(),
-                                                                &a[0], a[0], &c[0], RakNet::_RPC3::Deref(&d[0]),
-                                                                &testBitStream1, testBitStream2, 0);
+                                                                serverAPtr, a[0], serverCPtr, RakNet::_RPC3::Deref(serverDPtr),
+                                                                testBitStream1Ptr, testBitStream2, emptyRpc);
                                         
                                         
                                         std::string strC("\033[1;32m     C Function call timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m"));
@@ -246,9 +254,9 @@ int main(int argc, char *argv[]) {
                                         }
                                         const char *str = "\033[1;32m     C Remote call timestamp:      \033[0m";
                                         
-                                        CFuncTest(rs, intArray, &c[0], str, 0);
+                                        CFuncTest(rs, intArray, serverCPtr, str, emptyRpc);
                                         rpcPlugins[0]->CallC("CFuncTest", rs,
-                                                RakNet::_RPC3::PtrToArray(10, intArray), &c[0], str, 0);
+                                                RakNet::_RPC3::PtrToArray(10, intArray), serverCPtr, str, emptyRpc);
                                                 
                                         
                                         COUT << "\033[1;33m     TestSlot signal sent timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m") << ENDL;
@@ -311,6 +319,8 @@ int main(int argc, char *argv[]) {
     }
     rpcPlugins.clear();
     trash.close();
+    
+    delete emptyRpc;
     
     return 1;
 }

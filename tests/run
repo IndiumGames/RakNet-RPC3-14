@@ -1,13 +1,19 @@
 #/bin/bash
 
+INFIX=""
+
+if [ $1 = "boost" ]; then
+    INFIX="-boost"
+fi
+
 # When this exits, exit all back ground process also.
 trap 'kill $(jobs -p)' EXIT
 
 # Create empty log file.
-truncate -s 0 tests/bin/test.log
-truncate -s 0 tests/bin/garbage.txt
+truncate -s 0 "tests/bin/test$INFIX.log"
+truncate -s 0 "tests/bin/garbage$INFIX.txt"
 
 
-./tests/bin/raknet-tests --client-count 20 --call-count 20 > tests/bin/test.log &
+./tests/bin/raknet-tests$INFIX --client-count 20 --call-count 20 > "tests/bin/test$INFIX.log" &
 
-tail -f tests/bin/test.log
+tail -f "tests/bin/test$INFIX.log"

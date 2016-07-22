@@ -20,6 +20,9 @@
 #include "NetworkIDObject.h"
 #include "GetTime.h"
 
+#include "democlasses.h"
+
+
 void CFunc(RakNet::RakString rakString, int intArray[10], ClassC *c1,
                             const char *str, RakNet::RPC3 *rpcFromNetwork) {
     if (rpcFromNetwork == 0) {

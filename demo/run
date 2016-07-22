@@ -1,17 +1,23 @@
 #/bin/bash
 
+INFIX=""
+
+if [ $1 = "boost" ]; then
+    INFIX="-boost"
+fi
+
 # When this exits, exit all back ground process also.
 trap 'kill $(jobs -p)' EXIT
 
 # Create empty log files for server and client.
-truncate -s 0 demo/bin/server.log
-truncate -s 0 demo/bin/client.log
+truncate -s 0 "demo/bin/server$INFIX.log"
+truncate -s 0 "demo/bin/client$INFIX.log"
 
 
-./demo/bin/raknet-demo -s > demo/bin/server.log &
+./demo/bin/raknet-demo$INFIX -s > demo/bin/server$INFIX.log &
 
 sleep 2s
 
-./demo/bin/raknet-demo -c > demo/bin/client.log &
+./demo/bin/raknet-demo$INFIX -c > demo/bin/client$INFIX.log &
     
-tail -f demo/bin/server.log -f demo/bin/client.log
+tail -f "demo/bin/server$INFIX.log" -f "demo/bin/client$INFIX.log"

@@ -1,11 +1,24 @@
 #/bin/bash
 
-g++ -m64 -pthread -pipe -std=c++14 -g \
-    -I./ \
-    -I./demo/ \
-    -I./RakNet/Source/ \
-    ./demo/democlasses.cpp \
-    ./tests/rpctests.cpp \
-    ./RakNet/Source/*.cpp \
-    ./*.cpp \
-    -o tests/bin/raknet-tests
+if [ "$1" = "boost" ]; then
+    clang++ -m64 -pthread -pipe -std=c++14 -g \
+        -I./demo/ \
+        -I./RakNet/Source/ \
+        -I./RakNet/DependentExtensions/RPC3/ \
+        -I./boost_1_43_0/ \
+        ./demo/democlasses.cpp \
+        ./tests/rpctests.cpp \
+        ./RakNet/Source/*.cpp \
+        ./RakNet/DependentExtensions/RPC3/*.cpp \
+        -o tests/bin/raknet-tests-boost
+else
+    clang++ -m64 -pthread -pipe -std=c++14 -g \
+        -I./ \
+        -I./demo/ \
+        -I./RakNet/Source/ \
+        ./demo/democlasses.cpp \
+        ./tests/rpctests.cpp \
+        ./RakNet/Source/*.cpp \
+        ./*.cpp \
+        -o tests/bin/raknet-tests
+fi

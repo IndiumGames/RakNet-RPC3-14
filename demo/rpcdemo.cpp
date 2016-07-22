@@ -116,6 +116,14 @@ int main(int argc, char *argv[]) {
 
     RakNet::TimeMS stage2 = 0;
     RakNet::Packet *packet;
+
+
+    // The original version of RPC3 requires these pointers as lvalue.
+    BaseClassA *aPtr = &a;
+    BaseClassB *bPtr = &b;
+    ClassC *cPtr = &c;
+    ClassD *dPtr = &d;
+    RakNet::RPC3 *emptyRpc = 0;
     while (1) {
         for (packet=rakPeer->Receive(); packet;
                 rakPeer->DeallocatePacket(packet), packet=rakPeer->Receive()) {
@@ -145,9 +153,10 @@ int main(int argc, char *argv[]) {
                     RakNet::BitStream testBitStream1, testBitStream2;
                     testBitStream1.Write("Hello World 1");
                     testBitStream2.Write("Hello World 2");
+                    RakNet::BitStream *testBitStream1Ptr = &testBitStream1;
                     
                     c.ClassMemberFunc(&a, a, &c, &d, &testBitStream1,
-                                                            testBitStream2, 0);
+                                                    testBitStream2, emptyRpc);
                     // By default, pointers to objects that derive from
                     // NetworkIDObject (ClassC c and ClassD d), will only
                     // transmit the NetworkID of the object.
@@ -162,12 +171,13 @@ int main(int argc, char *argv[]) {
                     //     * d will transmit d->GetNetworkID() and also
                     //         bitStream << (*d) (contents of the pointer)
                     rpc3->CallCPP("&ClassC::ClassMemberFunc", c.GetNetworkID(),
-                                            &a, a, &c, RakNet::_RPC3::Deref(&d),
-                                            &testBitStream1, testBitStream2, 0);
+                                    aPtr, a, cPtr, RakNet::_RPC3::Deref(dPtr),
+                                    testBitStream1Ptr, testBitStream2, emptyRpc);
                     
                     
-                    c.ClassMemberFunc2(0);
-                    rpc3->CallCPP("&ClassC::ClassMemberFunc2", c.GetNetworkID(), 0);
+                    c.ClassMemberFunc2(emptyRpc);
+                    rpc3->CallCPP(
+                        "&ClassC::ClassMemberFunc2", c.GetNetworkID(), emptyRpc);
                         
                     
                     RakNet::RakString rs("RakString test");
@@ -177,15 +187,15 @@ int main(int argc, char *argv[]) {
                     }
                     const char *str = "Test string";
                     
-                    CFunc(rs, intArray, &c, str, 0);
+                    CFunc(rs, intArray, &c, str, emptyRpc);
                 
                     // The parameter "int intArray[10]" is actually a pointer
                     // due to the design of C and C++. The RakNet::_RPC3::PtrToArray()
                     // function will tell the RPC3 system that this is actually
                     // an array of n elements. Each element will be endian
                     // swapped appropriately.
-                    rpc3->CallC("CFunc", rs,
-                            RakNet::_RPC3::PtrToArray(10, intArray), &c, str, 0);
+                    rpc3->CallC("CFunc", rs, RakNet::_RPC3::PtrToArray(10, intArray),
+                                                                cPtr, str, emptyRpc);
                     
                     stage2 = RakNet::GetTimeMS() + 1000;
                     break;
@@ -226,7 +236,8 @@ int main(int argc, char *argv[]) {
             RakNet::BitStream testBitStream1, testBitStream2;
             testBitStream1.Write("Hello World 1 (2)");
             testBitStream2.Write("Hello World 2 (2)");
-            c.ClassMemberFunc(&a, a, &c, &d, &testBitStream1, testBitStream2, 0);
+            c.ClassMemberFunc(
+                    &a, a, &c, &d, &testBitStream1, testBitStream2, emptyRpc);
             RakNet::RakString rs("RakString test (2)");
             int intArray[10];
             for (int i = 0 ; i < sizeof(intArray)/sizeof(int) ; i++) {
@@ -234,9 +245,9 @@ int main(int argc, char *argv[]) {
             }
             
             const char *str = "Test string (2)";
-            CFunc(rs, intArray, &c, str, 0);
+            CFunc(rs, intArray, &c, str, emptyRpc);
             rpc3->CallC("CFunc", rs,
-                            RakNet::_RPC3::PtrToArray(10, intArray), &c, str, 0);
+                    RakNet::_RPC3::PtrToArray(10, intArray), cPtr, str, emptyRpc);
             
             rpc3->Signal("TestSlot");
         }

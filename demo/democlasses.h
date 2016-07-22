@@ -51,7 +51,7 @@ class ClassC
     : public BaseClassA, public BaseClassB, public RakNet::NetworkIDObject {
         
 public:
-    ClassC() : c(3) {}
+    ClassC() :BaseClassA(), BaseClassB(), RakNet::NetworkIDObject(), c(3) {}
     
     virtual void TestSlot(void) {
         std::cout << "ClassC::TestSlot" << std::endl;
@@ -76,7 +76,7 @@ public:
 class ClassD : public BaseClassA, public RakNet::NetworkIDObject {
     
 public:
-    ClassD() {
+    ClassD() : BaseClassA(), RakNet::NetworkIDObject() {
         for (int i=0; i < 10; i++) {
             tenBytes[i]=i;
         }
