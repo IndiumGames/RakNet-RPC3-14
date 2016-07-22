@@ -1,6 +1,6 @@
 #/bin/bash
 
-if [ $1 = "boost" ]; then
+if [ "$1" = "boost" ]; then
     clang++ -m64 -pthread -pipe -std=c++14 -g \
         -I./demo/ \
         -I./RakNet/Source/ \

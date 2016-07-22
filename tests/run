@@ -2,7 +2,7 @@
 
 INFIX=""
 
-if [ $1 = "boost" ]; then
+if [ "$1" = "boost" ]; then
     INFIX="-boost"
 fi
 
