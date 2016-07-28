@@ -260,10 +260,10 @@ struct ReadWithNetworkIDPtr
 
 		char *realname = abi::__cxa_demangle(typeid(T).name(), 0, 0, 0);
 		std::cout << "ffffffffffffffffffffffff3.1   " << realname << std::endl;
-		std::cout << "ffffffffffffffffffffffff3.1.1   " << t << std::endl;
 		
 		bool isNull;
 		args.bitStream->Read(isNull);
+		std::cout << "ffffffffffffffffffffffff3.1.1   " << isNull << std::endl;
 		if (isNull)
 		{
 			t=0;
@@ -273,6 +273,8 @@ struct ReadWithNetworkIDPtr
 		bool deref, isArray;
 		args.bitStream->Read(deref);
 		args.bitStream->Read(isArray);
+		std::cout << "ffffffffffffffffffffffff3.1.1.1   " << deref << std::endl;
+		std::cout << "ffffffffffffffffffffffff3.1.1.2   " << isArray << std::endl;
 		unsigned int count;
 		if (isArray)
 			args.bitStream->ReadCompressed(count);
@@ -281,8 +283,12 @@ struct ReadWithNetworkIDPtr
 		NetworkID networkId;
 		for (unsigned int i=0; i < count; i++)
 		{
+			std::cout << "ffffffffffffffffffffffff3.1.2   " << networkId << std::endl;
 			args.bitStream->Read(networkId);
+			std::cout << "ffffffffffffffffffffffff3.1.2.1   " << networkId << std::endl;
 			t = args.networkIDManager->GET_OBJECT_FROM_ID< T >(networkId);
+			std::cout << "ffffffffffffffffffffffff3.1.3   " << args.networkIDManager << std::endl;
+			std::cout << "ffffffffffffffffffffffff3.1.4   " << t << std::endl;
 			if (deref)
 			{
 				BitSize_t bitsUsed;
