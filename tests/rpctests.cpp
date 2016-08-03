@@ -21,6 +21,7 @@
 #include <fstream>
 #include <vector>
 #include <thread>
+#include <mutex>
 
 #include "Kbhit.h"
 #include "BitStream.h"
@@ -40,6 +41,25 @@
 
 #define COUT std::cout
 #define ENDL std::endl
+
+/*
+ * All time values are in microseconds.
+ */
+struct TestValues {
+    TestValues() : allReady(false) {}
+    
+    void PrintTestSummary() {
+        float mseconds = 0;
+        COUT << "Summary for the performance test:\n" << ENDL;
+        
+        mseconds = callFunctionsTime / 1000;
+        COUT << "Time used to call all functions: " << mseconds << " ms\n" << ENDL;
+    }
+    
+    int callFunctionsTime;
+    
+    bool allReady;
+};
 
 int main(int argc, char *argv[]) {
     std::ofstream trash("tests/bin/garbage.txt");
@@ -112,6 +132,9 @@ int main(int argc, char *argv[]) {
                 break;
         }
     }
+
+    TestValues testValues;
+    std::unique_ptr<std::recursive_mutex> mutex_(new std::recursive_mutex());
 
     unsigned int peerCount = clientCount + 1;
     std::vector<RakNet::RakPeerInterface *> rakPeers;
@@ -196,6 +219,9 @@ int main(int argc, char *argv[]) {
     
     RakNet::Packet *packet;
     while (1) {
+        if (testValues.allReady) {
+            break;
+        }
         for (std::size_t i = 0; i < peerCount; i++) {
             for (packet=rakPeers[i]->Receive(); packet;
                     rakPeers[i]->DeallocatePacket(packet), packet=rakPeers[i]->Receive()) {
@@ -227,12 +253,13 @@ int main(int argc, char *argv[]) {
                         if (!clientCount) {
                             // If all clients connected.
                             
-                            serverThread = std::thread([serverAPtr, serverBPtr, serverCPtr, serverDPtr, serverRpc, emptyRpc, peerCount, callCount] () {
-                                COUT << "\033[0;31m     Starting server thread to do RPC calls, timestamp: " << RakNet::GetTimeUS() << "     \033[0m" << ENDL;
+                            serverThread = std::thread([&mutex_, &testValues, serverAPtr, serverBPtr, serverCPtr, serverDPtr, serverRpc, emptyRpc, peerCount, callCount] () {
+                                //COUT << "\033[0;31m     Starting server thread to do RPC calls, timestamp: " << RakNet::GetTimeUS() << "     \033[0m" << ENDL;
                                 unsigned int count = callCount;
+                                int startTime = RakNet::GetTimeUS();
                                 while (count) {
                                     for (size_t i = 0; i < peerCount - 1; i++) {
-                                        COUT << "\033[0;35m    CCCCCCCCCCCCCCCC " << count << "." << i << "     \033[0m" << ENDL;
+                                        //COUT << "\033[0;35m    CCCCCCCCCCCCCCCC " << count << "." << i << "     \033[0m" << ENDL;
                                         RakNet::BitStream testBitStream1, testBitStream2;
                                         
                                         std::string strCpp("\033[1;32m     CPP Function call timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m"));
@@ -260,17 +287,20 @@ int main(int argc, char *argv[]) {
                                                 RakNet::_RPC3::PtrToArray(10, intArray), serverCPtr, str, emptyRpc);
                                                 
                                         
-                                        COUT << "\033[1;33m     TestSlot signal sent timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m") << ENDL;
+                                        //COUT << "\033[1;33m     TestSlot signal sent timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m") << ENDL;
                                         serverRpc->Signal("TestSlotTest");
                                     }
                                     count--;
                                     //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                                 }
                                 
-                                COUT << "\033[0;31m     All RPC calls sent, timestamp: "  << RakNet::GetTimeUS() << "     \033[0m" << ENDL;
+                                //COUT << "\033[0;31m     All RPC calls sent, timestamp: "  << RakNet::GetTimeUS() << "     \033[0m" << ENDL;
+                                std::lock_guard<std::recursive_mutex> lock(*mutex_);
+                                testValues.allReady = true;
+                                testValues.callFunctionsTime = RakNet::GetTimeUS() - startTime;
                             });
                             serverThread.detach();
-                            COUT << "\033[0;35m     Server thread started     \033[0m" << ENDL;
+                            //COUT << "\033[0;35m     Server thread started     \033[0m" << ENDL;
                         }
                         break;
                     }
@@ -312,6 +342,8 @@ int main(int argc, char *argv[]) {
 
         RakSleep(0);
     }
+
+    testValues.PrintTestSummary();
 
     for (std::size_t i = 0; i < peerCount; i++) {
         delete rpcPlugins[i];

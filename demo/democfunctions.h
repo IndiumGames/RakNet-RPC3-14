@@ -56,16 +56,16 @@ void CFunc2(ClassC *c1, RakNet::RPC3 *rpcFromNetwork) {
 void CFuncTest(RakNet::RakString rakString, int intArray[10], ClassC *c1,
                             const char *str, RakNet::RPC3 *rpcFromNetwork) {
     if (rpcFromNetwork == 0) {
-        std::cout << "CFuncTest called locally" << std::endl;
+        //std::cout << "CFuncTest called locally" << std::endl;
     }
     else {
-        std::cout << "CFuncTest called from " <<
-                rpcFromNetwork->GetLastSenderAddress().ToString() << std::endl;
+        //std::cout << "CFuncTest called from " <<
+        //        rpcFromNetwork->GetLastSenderAddress().ToString() << std::endl;
     }
     
-    std::cout << rakString.C_String() << std::endl;
+    //std::cout << rakString.C_String() << std::endl;
 
-    std::cout << str << "\033[1;32m    " << RakNet::GetTimeUS() << "     \033[0m" << std::endl;
+    //std::cout << str << "\033[1;32m    " << RakNet::GetTimeUS() << "     \033[0m" << std::endl;
 }
 
 #endif

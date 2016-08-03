@@ -57,7 +57,7 @@ public:
         std::cout << "ClassC::TestSlot" << std::endl;
     }
     virtual void TestSlotTest() {
-        std::cout << "\033[1;33m     ClassC::TestSlot signal received timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m") << std::endl;
+        //std::cout << "\033[1;33m     ClassC::TestSlot signal received timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m") << std::endl;
     }
     
     virtual void ClassMemberFunc(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
@@ -99,7 +99,7 @@ public:
     }
     
     virtual void TestSlotTest() {
-        std::cout << "\033[1;33m     ClassD::TestSlot signal received timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m") << std::endl;
+        //std::cout << "\033[1;33m     ClassD::TestSlot signal received timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m") << std::endl;
     }
     
     char tenBytes[10];

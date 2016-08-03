@@ -44,18 +44,18 @@ void BaseClassB::ClassMemberFuncTest(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
                     RakNet::RPC3 *rpcFromNetwork) {
     
     if (rpcFromNetwork==0) {
-        std::cout << "BaseClassB::ClassMemberFuncTest called locally" << std::endl;
+        //std::cout << "BaseClassB::ClassMemberFuncTest called locally" << std::endl;
     }
     else {
-        std::cout << "BaseClassB::ClassMemberFuncTest called from " <<
-                rpcFromNetwork->GetLastSenderAddress().ToString() << std::endl;
+        //std::cout << "BaseClassB::ClassMemberFuncTest called from " <<
+        //        rpcFromNetwork->GetLastSenderAddress().ToString() << std::endl;
     }
     
     RakNet::RakString rs1, rs2;
     bs1->Read(rs1);
     bs2.Read(rs2);
-    std::cout << rs1.C_String() << std::endl;
-    std::cout << rs2.C_String() << "\033[1;32m    " << RakNet::GetTimeUS() << "     \033[0m" << std::endl;
+    //std::cout << rs1.C_String() << std::endl;
+    //std::cout << rs2.C_String() << "\033[1;32m    " << RakNet::GetTimeUS() << "     \033[0m" << std::endl;
 }
 
 /*
