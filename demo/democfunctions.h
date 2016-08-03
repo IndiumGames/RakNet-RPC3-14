@@ -22,7 +22,7 @@
 
 #include "democlasses.h"
 
-void CFunc(RakNet::RakString rakString, int intArray[10], ClassC *c1,
+void CFunc(RakNet::RakString rakString, ClassC *c1,
                             const char *str, RakNet::RPC3 *rpcFromNetwork) {
     if (rpcFromNetwork == 0) {
         std::cout << "CFunc called locally" << std::endl;
@@ -35,15 +35,22 @@ void CFunc(RakNet::RakString rakString, int intArray[10], ClassC *c1,
     
     std::cout << "rakString=" << rakString.C_String() << std::endl;
     
-    std::cout << "intArray = ";
-    for (int i = 0; i < 10; i++) {
-        std::cout << intArray[i] << " ";
-    }
-    std::cout << "" << std::endl;
-    
     std::cout << "c1=" << c1->c << std::endl;
     
     std::cout << "str=" << str << std::endl;
+}
+
+void CFunc2(ClassC *c1, RakNet::RPC3 *rpcFromNetwork) {
+    if (rpcFromNetwork == 0) {
+        std::cout << "CFunc2 called locally" << std::endl;
+    }
+    else {
+        std::cout << "CFunc2 called from " <<
+                rpcFromNetwork->GetLastSenderAddress().ToString() <<
+                "  timestamp: " << rpcFromNetwork->GetLastSenderTimestamp() << std::endl;
+    }
+    
+    std::cout << "c1=" << c1->c << std::endl;
 }
 
 void CFuncTest(RakNet::RakString rakString, int intArray[10], ClassC *c1,

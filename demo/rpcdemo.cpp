@@ -106,6 +106,7 @@ int main(int argc, char *argv[]) {
 
     // Register a regular C function.
     RPC3_REGISTER_FUNCTION(rpc3, CFunc);
+    RPC3_REGISTER_FUNCTION(rpc3, CFunc2);
     
     // Register C++ class member functions.
     RPC3_REGISTER_FUNCTION(rpc3, &ClassC::ClassMemberFunc);
@@ -183,21 +184,18 @@ int main(int argc, char *argv[]) {
                         
                     
                     RakNet::RakString rs("RakString test");
-                    int intArray[10];
-                    for (int i = 0 ; i < sizeof(intArray)/sizeof(int) ; i++) {
-                        intArray[i] = i;
-                    }
                     const char *str = "Test string";
                     
-                    CFunc(rs, intArray, &c, str, emptyRpc);
                 
                     // The parameter "int intArray[10]" is actually a pointer
                     // due to the design of C and C++. The RakNet::_RPC3::PtrToArray()
                     // function will tell the RPC3 system that this is actually
                     // an array of n elements. Each element will be endian
                     // swapped appropriately.
-                    rpc3->CallC("CFunc", rs, RakNet::_RPC3::PtrToArray(10, intArray),
-                                                                cPtr, str, emptyRpc);
+                    rpc3->CallC("CFunc", rs, cPtr, str, emptyRpc);
+                    CFunc(rs, &c, str, emptyRpc);
+                    
+                    rpc3->CallC("CFunc2", cPtr, emptyRpc);
                     
                     stage2 = RakNet::GetTimeMS() + 1000;
                     break;
@@ -241,15 +239,10 @@ int main(int argc, char *argv[]) {
             c.ClassMemberFunc(
                     &a, a, &c, &d, &testBitStream1, testBitStream2, emptyRpc);
             RakNet::RakString rs("RakString test (2)");
-            int intArray[10];
-            for (int i = 0 ; i < sizeof(intArray)/sizeof(int) ; i++) {
-                intArray[i] = i;
-            }
             
             const char *str = "Test string (2)";
-            CFunc(rs, intArray, &c, str, emptyRpc);
-            rpc3->CallC("CFunc", rs,
-                    RakNet::_RPC3::PtrToArray(10, intArray), cPtr, str, emptyRpc);
+            CFunc(rs, &c, str, emptyRpc);
+            rpc3->CallC("CFunc", rs, cPtr, str, emptyRpc);
             
             rpc3->Signal("TestSlot");
         }
