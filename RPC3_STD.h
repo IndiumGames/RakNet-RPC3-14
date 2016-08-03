@@ -167,44 +167,14 @@ struct ReadPtr
 	template <typename T2>
 	static inline void applyArray(RakNet::BitStream &bitStream, T2 *t) {bitStream >> (*t);}
 	template <typename T2>
-	static inline void apply(RakNet::BitStream &bitStream, T2 *t) {
-		
-		char *realname = abi::__cxa_demangle(typeid(T2).name(), 0, 0, 0);
-		std::cout << "ffffffffffffffffffffffff4.1  " << realname << std::endl;
-		
-		bitStream >> (*t);}
+	static inline void apply(RakNet::BitStream &bitStream, T2 *t) {bitStream >> (*t);}
 
-	static inline void apply(RakNet::BitStream &bitStream, char *&t) {
-		
-		char *realname = abi::__cxa_demangle(typeid(t).name(), 0, 0, 0);
-		std::cout << "ffffffffffffffffffffffff4.2  " << realname << std::endl;
-		
-		applyStr(bitStream, (char *&) t);}
-	static inline void apply(RakNet::BitStream &bitStream, unsigned char *&t) {
-		
-		char *realname = abi::__cxa_demangle(typeid(t).name(), 0, 0, 0);
-		std::cout << "ffffffffffffffffffffffff4.3  " << realname << std::endl;
-		
-		applyStr(bitStream, (char *&) t);}
-	static inline void apply(RakNet::BitStream &bitStream, const char *&t) {
-		
-		char *realname = abi::__cxa_demangle(typeid(t).name(), 0, 0, 0);
-		std::cout << "ffffffffffffffffffffffff4.4  " << realname << std::endl;
-		
-		applyStr(bitStream, (char *&) t);}
-	static inline void apply(RakNet::BitStream &bitStream, const unsigned char *&t) {
-		
-		char *realname = abi::__cxa_demangle(typeid(t).name(), 0, 0, 0);
-		std::cout << "ffffffffffffffffffffffff4.5  " << realname << std::endl;
-		
-		applyStr(bitStream, (char *&) t);}
+	static inline void apply(RakNet::BitStream &bitStream, char *&t) {applyStr(bitStream, (char *&) t);}
+	static inline void apply(RakNet::BitStream &bitStream, unsigned char *&t) {applyStr(bitStream, (char *&) t);}
+	static inline void apply(RakNet::BitStream &bitStream, const char *&t) {applyStr(bitStream, (char *&) t);}
+	static inline void apply(RakNet::BitStream &bitStream, const unsigned char *&t) {applyStr(bitStream, (char *&) t);}
 	static inline void applyStr(RakNet::BitStream &bitStream, char *&t)
 	{
-		
-		char *realname = abi::__cxa_demangle(typeid(t).name(), 0, 0, 0);
-		std::cout << "ffffffffffffffffffffffff4.6  " << realname << std::endl;
-		std::cout << "ffffffffffffffffffffffff4.6.1  " << t << std::endl;
-		
 		
 		RakNet::RakString rs;
 		bitStream >> rs;
@@ -213,13 +183,10 @@ struct ReadPtr
 		// The caller should have already allocated memory, so we need to free
 		// it and allocate a new buffer.
 		RakAssert("Expected allocated array, got NULL" && (NULL != t));
-		std::cout << "ffffffffffffffffffffffff4.6.2  " << t << std::endl;
 		delete [] t;
 
 		t = new char [len];
-		std::cout << "ffffffffffffffffffffffff4.6.3  " << t << std::endl;
 		memcpy(t,rs.C_String(),len);
-		std::cout << "ffffffffffffffffffffffff4.6.4  " << t << std::endl;
 	}
 };
 
@@ -257,13 +224,9 @@ struct ReadWithNetworkIDPtr
 	{
 //		printf("ReadWithNetworkIDPtr\n");
 		// Read the network ID
-
-		char *realname = abi::__cxa_demangle(typeid(T).name(), 0, 0, 0);
-		std::cout << "ffffffffffffffffffffffff3.1   " << realname << std::endl;
 		
 		bool isNull;
 		args.bitStream->Read(isNull);
-		std::cout << "ffffffffffffffffffffffff3.1.1   " << isNull << std::endl;
 		if (isNull)
 		{
 			t=0;
@@ -273,8 +236,6 @@ struct ReadWithNetworkIDPtr
 		bool deref, isArray;
 		args.bitStream->Read(deref);
 		args.bitStream->Read(isArray);
-		std::cout << "ffffffffffffffffffffffff3.1.1.1   " << deref << std::endl;
-		std::cout << "ffffffffffffffffffffffff3.1.1.2   " << isArray << std::endl;
 		unsigned int count;
 		if (isArray)
 			args.bitStream->ReadCompressed(count);
@@ -283,12 +244,8 @@ struct ReadWithNetworkIDPtr
 		NetworkID networkId;
 		for (unsigned int i=0; i < count; i++)
 		{
-			std::cout << "ffffffffffffffffffffffff3.1.2   " << networkId << std::endl;
 			args.bitStream->Read(networkId);
-			std::cout << "ffffffffffffffffffffffff3.1.2.1   " << networkId << std::endl;
 			t = args.networkIDManager->GET_OBJECT_FROM_ID< T >(networkId);
-			std::cout << "ffffffffffffffffffffffff3.1.3   " << args.networkIDManager << std::endl;
-			std::cout << "ffffffffffffffffffffffff3.1.4   " << t << std::endl;
 			if (deref)
 			{
 				BitSize_t bitsUsed;
@@ -321,9 +278,6 @@ struct ReadWithoutNetworkIDPtr
 	static InvokeResultCodes apply(InvokeArgs &args, T2 &t)
 	{
 //		printf("ReadWithoutNetworkIDPtr\n");
-		
-		char *realname = abi::__cxa_demangle(typeid(T).name(), 0, 0, 0);
-		std::cout << "ffffffffffffffffffffffff3.2   " << realname << std::endl;
 		
 		bool isNull=false;
 		args.bitStream->Read(isNull);
@@ -462,10 +416,7 @@ struct RpcInvoker<R(Args...)> {
 		typedef typename std::remove_reference<decltype(std::get<I>(args))>::type arg_type_no_ref;
 		
 		char *realname = abi::__cxa_demangle(typeid(arg_type_no_ref).name(), 0, 0, 0);
-		std::cout << "ffffffffffffffffffffffff1   " << realname << std::endl;
 		realname = abi::__cxa_demangle(typeid(std::get<I>(args)).name(), 0, 0, 0);
-		std::cout << "ffffffffffffffffffffffff2   " << realname << std::endl;
-		std::cout << "ffffffffffffffffffffffff2.1   " << I << std::endl;
 		
 		ProcessArgType<arg_type_no_ref>::type::apply(functionArgs, std::get<I>(args));
         
@@ -541,36 +492,15 @@ struct WritePtr
 	template <typename T2>
 	static inline void applyArray(RakNet::BitStream &bitStream, T2 *t) {bitStream << (*t);}
 	template <typename T2>
-	static inline void apply(RakNet::BitStream &bitStream, T2 *t) {
-		char *realname = abi::__cxa_demangle(typeid(T2).name(), 0, 0, 0);
-		std::cout << "dddddddddddddddddddddddd4.1  " << realname << std::endl;
-		std::cout << "dddddddddddddddddddddddd4.1.1  " << t << std::endl;
-		
-		bitStream << (*t);}
+	static inline void apply(RakNet::BitStream &bitStream, T2 *t) {bitStream << (*t);}
 
-	static inline void apply(RakNet::BitStream &bitStream, char *t) {
-		char *realname = abi::__cxa_demangle(typeid(t).name(), 0, 0, 0);
-		std::cout << "dddddddddddddddddddddddd4.2  " << realname << std::endl;
-		std::cout << "dddddddddddddddddddddddd4.2.1  " << t << std::endl;
-		bitStream << t;}
+	static inline void apply(RakNet::BitStream &bitStream, char *t) {bitStream << t;}
 
-	static inline void apply(RakNet::BitStream &bitStream, unsigned char *t) {
-		char *realname = abi::__cxa_demangle(typeid(t).name(), 0, 0, 0);
-		std::cout << "dddddddddddddddddddddddd4.3  " << realname << std::endl;
-		std::cout << "dddddddddddddddddddddddd4.3.1  " << t << std::endl;
-		bitStream << t;}
+	static inline void apply(RakNet::BitStream &bitStream, unsigned char *t) {bitStream << t;}
 
-	static inline void apply(RakNet::BitStream &bitStream, const char *t) {
-		char *realname = abi::__cxa_demangle(typeid(t).name(), 0, 0, 0);
-		std::cout << "dddddddddddddddddddddddd4.4  " << realname << std::endl;
-		std::cout << "dddddddddddddddddddddddd4.4.1  " << t << std::endl;
-		bitStream << t;}
+	static inline void apply(RakNet::BitStream &bitStream, const char *t) {bitStream << t;}
 
-	static inline void apply(RakNet::BitStream &bitStream, const unsigned char *t) {
-		char *realname = abi::__cxa_demangle(typeid(t).name(), 0, 0, 0);
-		std::cout << "dddddddddddddddddddddddd4.5  " << realname << std::endl;
-		std::cout << "dddddddddddddddddddddddd4.5.1  " << t << std::endl;
-		bitStream << t;}
+	static inline void apply(RakNet::BitStream &bitStream, const unsigned char *t) {bitStream << t;}
 };
 
 template< typename T >
@@ -587,9 +517,6 @@ struct WriteWithNetworkIDPtr
 {
 	static void apply(RakNet::BitStream &bitStream, T& t)
 	{
-		char *realname = abi::__cxa_demangle(typeid(T).name(), 0, 0, 0);
-		std::cout << "dddddddddddddddddddddddd3.1  " << realname << std::endl;
-		std::cout << "dddddddddddddddddddddddd3.1.1  " << t << std::endl;
 		
 		bool isNull;
 		isNull=(t==0);
@@ -599,9 +526,7 @@ struct WriteWithNetworkIDPtr
 		RPC3Tag tag;
 		__RPC3ClearPtr(t, &tag);
 		bool deref = (tag.flag & RPC3_TAG_FLAG_DEREF) !=0;
-		std::cout << "dddddddddddddddddddddddd3.1.2  " << deref << std::endl;
 		bool isArray = (tag.flag & RPC3_TAG_FLAG_ARRAY) !=0;
-		std::cout << "dddddddddddddddddddddddd3.1.3  " << isArray << std::endl;
 		bitStream.Write(deref);
 		bitStream.Write(isArray);
 		if (isArray)
@@ -612,7 +537,6 @@ struct WriteWithNetworkIDPtr
 		{
 			NetworkID inNetworkID=t->GetNetworkID();
 			bitStream << inNetworkID;
-			std::cout << "dddddddddddddddddddddddd3.1.4  " << inNetworkID << std::endl;
 			if (deref)
 			{
 				// skip bytes, write data, go back, write number of bits written, reset cursor
@@ -651,8 +575,6 @@ struct WriteWithoutNetworkIDPtr
 {
 	static void apply(RakNet::BitStream &bitStream, T& t)
 	{
-		char *realname = abi::__cxa_demangle(typeid(T).name(), 0, 0, 0);
-		std::cout << "dddddddddddddddddddddddd3.2  " << realname << std::endl;
 		
 		bool isNull;
 		isNull=(t==0);
@@ -783,11 +705,6 @@ struct RpcCall {
 			Call(Rpc *rpc, const char *identifier, RakNet::BitStream &bitStream,
 				bool &result, int argCount, bool isCall, Arg &arg, const Args&... args) {
 		typedef typename std::remove_reference<decltype(arg)>::type arg_type_no_ref;
-		
-		char *realname = abi::__cxa_demangle(typeid(arg_type_no_ref).name(), 0, 0, 0);
-		std::cout << "dddddddddddddddddddddddd1  " << realname << std::endl;
-		realname = abi::__cxa_demangle(typeid(arg).name(), 0, 0, 0);
-		std::cout << "dddddddddddddddddddddddd2  " << realname << std::endl;
 		
 		_RPC3::SerializeCallParameterBranch<arg_type_no_ref>::type::apply(bitStream, arg);
         
