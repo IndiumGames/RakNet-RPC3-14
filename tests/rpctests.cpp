@@ -52,11 +52,15 @@ struct TestValues {
         float mseconds = 0;
         COUT << "Summary for the performance test:\n" << ENDL;
         
+        mseconds = programRunTime / 1000;
+        COUT << "Time used to run the test program: " << mseconds << " ms\n" << ENDL;
+        
         mseconds = callFunctionsTime / 1000;
         COUT << "Time used to call all functions: " << mseconds << " ms\n" << ENDL;
     }
     
     int callFunctionsTime;
+    int programRunTime;
     
     bool allReady;
 };
@@ -134,6 +138,8 @@ int main(int argc, char *argv[]) {
     }
 
     TestValues testValues;
+    int programStartTime = RakNet::GetTimeUS();
+    
     std::unique_ptr<std::recursive_mutex> mutex_(new std::recursive_mutex());
 
     unsigned int peerCount = clientCount + 1;
@@ -276,15 +282,10 @@ int main(int argc, char *argv[]) {
                                         
                                         std::string strC("\033[1;32m     C Function call timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m"));
                                         RakNet::RakString rs(strC.c_str());
-                                        int intArray[10];
-                                        for (int j = 0 ; j < sizeof(intArray)/sizeof(int) ; j++) {
-                                            intArray[j] = j;
-                                        }
                                         const char *str = "\033[1;32m     C Remote call timestamp:      \033[0m";
                                         
-                                        CFuncTest(rs, intArray, serverCPtr, str, emptyRpc);
-                                        serverRpc->CallC("CFuncTest", rs,
-                                                RakNet::_RPC3::PtrToArray(10, intArray), serverCPtr, str, emptyRpc);
+                                        CFuncTest(rs, serverCPtr, str, emptyRpc);
+                                        serverRpc->CallC("CFuncTest", rs, serverCPtr, str, emptyRpc);
                                                 
                                         
                                         //COUT << "\033[1;33m     TestSlot signal sent timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m") << ENDL;
@@ -343,6 +344,7 @@ int main(int argc, char *argv[]) {
         RakSleep(0);
     }
 
+    testValues.programRunTime = RakNet::GetTimeUS() - programStartTime;
     testValues.PrintTestSummary();
 
     for (std::size_t i = 0; i < peerCount; i++) {

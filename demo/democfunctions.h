@@ -53,7 +53,7 @@ void CFunc2(ClassC *c1, RakNet::RPC3 *rpcFromNetwork) {
     std::cout << "c1=" << c1->c << std::endl;
 }
 
-void CFuncTest(RakNet::RakString rakString, int intArray[10], ClassC *c1,
+void CFuncTest(RakNet::RakString rakString, ClassC *c1,
                             const char *str, RakNet::RPC3 *rpcFromNetwork) {
     if (rpcFromNetwork == 0) {
         //std::cout << "CFuncTest called locally" << std::endl;
