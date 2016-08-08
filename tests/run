@@ -14,6 +14,6 @@ truncate -s 0 "tests/bin/test$INFIX.log"
 truncate -s 0 "tests/bin/garbage$INFIX.txt"
 
 
-./tests/bin/raknet-tests$INFIX --client-count 20 --call-count 20 > "tests/bin/test$INFIX.log" &
+./tests/bin/raknet-tests$INFIX --client-count 10 --call-count 10 > "tests/bin/test$INFIX.log" &
 
 tail -f "tests/bin/test$INFIX.log"

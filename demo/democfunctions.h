@@ -58,25 +58,10 @@ void CFunc2(ClassC *c1, RakNet::RPC3 *rpcFromNetwork) {
 static std::map<int, uint64_t> cFuncTestCalls;
 
 void CFuncTest(RakNet::RakString rakString, ClassC *c1, const char *str,
-                            uint64_t callNumber, RakNet::RPC3 *rpcFromNetwork) {
-    if (rpcFromNetwork == 0) {
-        std::pair<int, uint64_t> p(callNumber, RakNet::GetTimeUS());
-        cFuncTestCalls.insert(p);
-        //std::cout << "CFuncTest called locally" <<
-        //    " callNumber: " << callNumber <<
-        //    " time: " << cFuncTestCalls[callNumber] << std::endl;
-    }
-    else {
-        cFuncTestCalls[callNumber] = RakNet::GetTimeUS() - cFuncTestCalls[callNumber];
-        //std::cout << "CFuncTest called from " <<
-        //        rpcFromNetwork->GetLastSenderAddress().ToString() << "." <<
-        //    " callNumber: " << callNumber <<
-        //    " time: " << cFuncTestCalls[callNumber] <<  std::endl;
-    }
-    
-    //std::cout << rakString.C_String() << std::endl;
+        uint64_t callNumber, uint64_t callTime, RakNet::RPC3 *rpcFromNetwork) {
 
-    //std::cout << str << "\033[1;32m    " << RakNet::GetTimeUS() << "     \033[0m" << std::endl;
+    std::pair<int, uint64_t> p(callNumber, RakNet::GetTimeUS() - callTime);
+    cFuncTestCalls.insert(p);
 }
 
 #endif

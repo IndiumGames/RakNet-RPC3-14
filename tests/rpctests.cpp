@@ -37,12 +37,6 @@
 #include "democlasses.h"
 #include "democfunctions.h"
 
-//#define COUT std::cout.rdbuf(stdOut); std::cout
-//#define ENDL std::endl; std::cout.rdbuf(trash.rdbuf())
-
-#define COUT std::cout
-#define ENDL std::endl
-
 /*
  * All time values are in microseconds.
  */
@@ -51,27 +45,43 @@ struct TestValues {
     
     void PrintTestSummary() {
         float mseconds = 0;
-        COUT << "Summary for the performance test:\n" << ENDL;
+        std::cout << "Summary for the performance test:\n" << std::endl;
         
         mseconds = programRunTime / 1000;
-        COUT << "Time used to run the test program: " << mseconds << " ms\n" << ENDL;
+        std::cout << "Time used to run the test program: "
+                  << mseconds << " ms\n" << std::endl;
         
         mseconds = callFunctionsTime / 1000;
-        COUT << "Time used to call all functions: " << mseconds << " ms\n" << ENDL;
+        std::cout << "Time used to call all functions: "
+                  << mseconds << " ms\n" << std::endl;
         
         mseconds = std::accumulate(
             cClassValues.begin(), cClassValues.end(), 0,
             [] (int value, const std::map<int, uint64_t>::value_type& p) {
                 return value + p.second;
-            }) / cClassValues.size();
-        COUT << "Average for ClassC::ClassMemberFuncTest call by RPC: " << mseconds << " us\n" << ENDL;
+            }) / cClassValues.size() / 1000;
+        std::cout << "Average for ClassC::ClassMemberFuncTest call by RPC: "
+                  << mseconds << " ms\n" << std::endl;
         
         mseconds = std::accumulate(
             cFuncValues.begin(), cFuncValues.end(), 0,
             [] (int value, const std::map<int, uint64_t>::value_type& p) {
                 return value + p.second;
-            }) / cFuncValues.size();
-        COUT << "Average for CFuncTest call by RPC: " << mseconds << " us\n" << ENDL;
+            }) / cFuncValues.size() / 1000;
+        std::cout << "Average for CFuncTest call by RPC: "
+                  << mseconds << " ms\n" << std::endl;
+        
+        mseconds = std::accumulate(
+            cClassSlotValues.begin(), cClassSlotValues.end(), 0,
+            [] (int value, const std::map<int, uint64_t>::value_type& p) {
+                return value + p.second;
+            }) / cClassSlotValues.size() / 1000;
+        std::cout << "Average for ClassC::TestSlotTest call by RPC: "
+                  << mseconds << " ms\n" << std::endl;
+    }
+    
+    void AppendCClassSlotValues(std::map<int, uint64_t> values) {
+        cClassSlotValues.insert(values.begin(), values.end());
     }
     
     void AppendCClassValues(std::map<int, uint64_t> values) {
@@ -85,17 +95,68 @@ struct TestValues {
     uint64_t callFunctionsTime;
     uint64_t programRunTime;
     
+    std::map<int, uint64_t> cClassSlotValues;
     std::map<int, uint64_t> cClassValues;
     std::map<int, uint64_t> cFuncValues;
     
     bool allReady;
 };
 
-int main(int argc, char *argv[]) {
-    std::ofstream trash("tests/bin/garbage.txt");
-    std::streambuf* stdOut = std::cout.rdbuf();
+void serverThread(std::recursive_mutex *mutex_, TestValues *testValues,
+        BaseClassA *serverAPtr, ClassC *serverCPtr, ClassD *serverDPtr,
+        RakNet::RPC3 *serverRpc, unsigned int peerCount,
+        unsigned int callCount) {
     
-    COUT << "Performance test for the RPC314 plugin." << ENDL;
+    RakNet::RPC3 *emptyRpc = 0;
+    unsigned int count = callCount;
+    uint64_t startTime = RakNet::GetTimeUS();
+    while (count) {
+        for (size_t i = 1; i < peerCount; i++) {
+            uint64_t callNumber = i * callCount + count;
+            std::cout << "callNumber: " << callNumber << std::endl;
+        
+            RakNet::BitStream testBitStream1, testBitStream2;
+            testBitStream1.Write("CPP TEST STRING");
+            testBitStream2.Write("CPP Remote call timestamp test string.");
+            RakNet::BitStream *testBitStream1Ptr = &testBitStream1;
+            
+            uint64_t callTime = RakNet::GetTimeUS();
+            serverCPtr->ClassMemberFuncTest(
+                serverAPtr, *serverAPtr, serverCPtr, serverDPtr,
+                testBitStream1Ptr, testBitStream2, callNumber, callTime, emptyRpc
+            );
+            serverRpc->CallCPP(
+                "&ClassC::ClassMemberFuncTest", serverCPtr->GetNetworkID(),
+                serverAPtr, *serverAPtr, serverCPtr, serverDPtr,
+                testBitStream1Ptr, testBitStream2, callNumber, callTime, emptyRpc
+            );
+            
+            RakNet::RakString rs("C Function call test string.");
+            const char *str = "C Remote call char * test.";
+            
+            callTime = RakNet::GetTimeUS();
+            CFuncTest(rs, serverCPtr, str, callNumber, callTime, emptyRpc);
+            serverRpc->CallC("CFuncTest",
+                        rs, serverCPtr, str, callNumber, callTime, emptyRpc);
+            
+            callTime = RakNet::GetTimeUS();
+            serverRpc->Signal("TestSlotTest", callNumber, callTime);
+            
+        }
+        count--;
+        RakSleep(16);
+    }
+    
+    mutex_->lock();
+    testValues->callFunctionsTime = RakNet::GetTimeUS() - startTime;
+    mutex_->unlock();
+    
+    delete emptyRpc;
+}
+
+int main(int argc, char *argv[]) {
+    
+    std::cout << "Performance test for the RPC314 plugin." << std::endl;
     
     bool isServer = false;
     bool testAll = false;
@@ -164,6 +225,8 @@ int main(int argc, char *argv[]) {
     }
 
     TestValues testValues;
+    testValues.allReady = false;
+    
     uint64_t programStartTime = RakNet::GetTimeUS();
     
     std::unique_ptr<std::recursive_mutex> mutex_(new std::recursive_mutex());
@@ -190,8 +253,6 @@ int main(int argc, char *argv[]) {
     std::vector<ClassD> d;
     d.assign(peerCount, ClassD());
     
-    std::thread serverThread;
-    
     for (std::size_t i = 0; i < peerCount; i++) {
         rakPeers.push_back(RakNet::RakPeerInterface::GetInstance());
         rpcPlugins.push_back(new RakNet::RPC3());
@@ -204,7 +265,7 @@ int main(int argc, char *argv[]) {
             rakPeers[i]->Startup(clientCount, &socketDescriptorServer, 1);
             rakPeers[i]->SetMaximumIncomingConnections(clientCount);
             
-            COUT << "Server started." << ENDL;
+            std::cout << "Server started." << std::endl;
         }
         else {
             RakNet::SocketDescriptor socketDescriptorClient(60000 + i, 0);
@@ -213,10 +274,10 @@ int main(int argc, char *argv[]) {
             
             rakPeers[i]->Startup(1, &socketDescriptorClient, 1);
 
-            // Send out a LAN broadcast to find other instances on the same computer.
+            // Send out a LAN broadcast to find the server on the same computer.
             rakPeers[i]->Ping("255.255.255.255", 60000, true, 0);
 
-            COUT << "Client #" << i << " started." << ENDL;
+            std::cout << "Client #" << i << " started." << std::endl;
         }
         
         rakPeers[i]->AttachPlugin(rpcPlugins[i]);
@@ -234,104 +295,67 @@ int main(int argc, char *argv[]) {
         RPC3_REGISTER_FUNCTION(rpcPlugins[i], &ClassC::ClassMemberFuncTest);
         
         // All equivalent local and remote slots are called when a signal is sent.
-        rpcPlugins[i]->RegisterSlot("TestSlotTest", &ClassC::TestSlotTest, c[i].GetNetworkID(), 0);
-        rpcPlugins[i]->RegisterSlot("TestSlotTest", &ClassD::TestSlotTest, d[i].GetNetworkID(), 0);
+        rpcPlugins[i]->RegisterSlot(
+                "TestSlotTest", &ClassC::TestSlotTest, c[i].GetNetworkID(), 0);
+        rpcPlugins[i]->RegisterSlot(
+                "TestSlotTest", &ClassD::TestSlotTest, d[i].GetNetworkID(), 0);
     }
     
-    COUT << "Clients will automatically connect to running server." << ENDL;
-    COUT << "Running " << callCount << " rounds." << ENDL;
+    std::cout << "Clients will automatically connect to running server." << std::endl;
+    std::cout << "Running " << callCount << " rounds." << std::endl;
 
-    // The original version of RPC3 requires these pointers as lvalue.
-    BaseClassA *serverAPtr = &a[0];
-    BaseClassB *serverBPtr = &b[0];
-    ClassC *serverCPtr = &c[0];
-    ClassD *serverDPtr = &d[0];
-    RakNet::RPC3 *emptyRpc = 0;
-    RakNet::RPC3 *serverRpc = rpcPlugins[0];
     
     RakNet::Packet *packet;
-    while (1) {
-        if (testValues.allReady) {
-            break;
-        }
+    std::thread serverT;
+    bool allready = true;
+    while (!testValues.allReady) {
         for (std::size_t i = 0; i < peerCount; i++) {
             for (packet=rakPeers[i]->Receive(); packet;
                     rakPeers[i]->DeallocatePacket(packet), packet=rakPeers[i]->Receive()) {
                 switch (packet->data[0]) {
                     case ID_DISCONNECTION_NOTIFICATION:
-                        COUT << "ID_DISCONNECTION_NOTIFICATION peer index:" << i << ENDL;
+                        std::cout << "ID_DISCONNECTION_NOTIFICATION peer index:"
+                                  << i << std::endl;
                         break;
                     case ID_ALREADY_CONNECTED:
-                        COUT << "ID_ALREADY_CONNECTED peer index:" << i << ENDL;
+                        std::cout << "ID_ALREADY_CONNECTED peer index:" << i
+                                  << std::endl;
                         break;
                     case ID_CONNECTION_ATTEMPT_FAILED:
-                        COUT << "Connection attempt failed peer index:" << i << ENDL;
+                        std::cout << "Connection attempt failed peer index:"
+                                  << i << std::endl;
                         break;
                     case ID_NO_FREE_INCOMING_CONNECTIONS:
-                        COUT << "ID_NO_FREE_INCOMING_CONNECTIONS peer index:" << i << ENDL;
+                        std::cout << "ID_NO_FREE_INCOMING_CONNECTIONS peer index:"
+                                  << i << std::endl;
                         break;
                     case ID_UNCONNECTED_PONG:
                         // Found the server
-                        rakPeers[i]->Connect(packet->systemAddress.ToString(false),
-                                        packet->systemAddress.GetPort(), 0, 0, 0);
+                        rakPeers[i]->Connect(
+                            packet->systemAddress.ToString(false),
+                            packet->systemAddress.GetPort(), 0, 0, 0
+                        );
                         break;
                     case ID_CONNECTION_REQUEST_ACCEPTED:
                         // This tells the client they have connected
-                        COUT << "ID_CONNECTION_REQUEST_ACCEPTED peer index:" << i << ENDL;
+                        std::cout << "ID_CONNECTION_REQUEST_ACCEPTED peer index:"
+                                  << i << std::endl;
                         break;
                     case ID_NEW_INCOMING_CONNECTION: {
                         clientCount--;
-                        COUT << "ID_NEW_INCOMING_CONNECTION peer index:" << i << "  clients to wait:" << clientCount << ENDL;
+                        std::cout << "ID_NEW_INCOMING_CONNECTION peer index:"
+                                  << i << "  clients to wait:" << clientCount
+                                  << std::endl;
+                                  
                         if (!clientCount) {
-                            // If all clients connected.
+                            // If all clients are connected.
+                            serverT = std::thread(
+                                serverThread, mutex_.get(), &testValues,
+                                &a[0], &c[0], &d[0], rpcPlugins[0],
+                                peerCount, callCount
+                            );
                             
-                            serverThread = std::thread([&mutex_, &testValues, &c, serverAPtr, serverBPtr, serverCPtr, serverDPtr, serverRpc, emptyRpc, peerCount, callCount] () {
-                                //COUT << "\033[0;31m     Starting server thread to do RPC calls, timestamp: " << RakNet::GetTimeUS() << "     \033[0m" << ENDL;
-                                unsigned int count = callCount;
-                                uint64_t startTime = RakNet::GetTimeUS();
-                                while (count) {
-                                    for (size_t i = 1; i < peerCount; i++) {
-                                    
-                                        uint64_t callNumber = i * callCount + count;
-                                    
-                                        //COUT << "\033[0;35m    CCCCCCCCCCCCCCCC " << count << "." << i << "     \033[0m" << ENDL;
-                                        RakNet::BitStream testBitStream1, testBitStream2;
-                                        
-                                        std::string strCpp("\033[1;32m     CPP Function call timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m"));
-                                        testBitStream1.Write(strCpp.c_str());
-                                        testBitStream2.Write("\033[1;32m     CPP Remote call timestamp:      \033[0m");
-                                        RakNet::BitStream *testBitStream1Ptr = &testBitStream1;
-                                        
-                                        serverCPtr->ClassMemberFuncTest(serverAPtr, *serverAPtr, serverCPtr, serverDPtr, testBitStream1Ptr,
-                                                                                testBitStream2, callNumber, emptyRpc);
-                                        serverRpc->CallCPP("&ClassC::ClassMemberFuncTest", serverCPtr->GetNetworkID(),
-                                                                serverAPtr, *serverAPtr, serverCPtr, serverDPtr,
-                                                                testBitStream1Ptr, testBitStream2, callNumber, emptyRpc);
-                                        
-                                        
-                                        std::string strC("\033[1;32m     C Function call timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m"));
-                                        RakNet::RakString rs(strC.c_str());
-                                        const char *str = "\033[1;32m     C Remote call timestamp:      \033[0m";
-                                        
-                                        CFuncTest(rs, serverCPtr, str, callNumber, emptyRpc);
-                                        serverRpc->CallC("CFuncTest", rs, serverCPtr, str, callNumber, emptyRpc);
-                                                
-                                        
-                                        //COUT << "\033[1;33m     TestSlot signal sent timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m") << ENDL;
-                                        serverRpc->Signal("TestSlotTest");
-                                        
-                                    }
-                                    count--;
-                                    //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-                                }
-                                
-                                //COUT << "\033[0;31m     All RPC calls sent, timestamp: "  << RakNet::GetTimeUS() << "     \033[0m" << ENDL;
-                                std::lock_guard<std::recursive_mutex> lock(*mutex_);
-                                testValues.allReady = true;
-                                testValues.callFunctionsTime = RakNet::GetTimeUS() - startTime;
-                            });
-                            serverThread.detach();
-                            //COUT << "\033[0;35m     Server thread started     \033[0m" << ENDL;
+                            serverT.detach();
                         }
                         break;
                     }
@@ -339,46 +363,86 @@ int main(int argc, char *argv[]) {
                         // Recipient system returned an error
                         switch (packet->data[1]) {
                             case RakNet::RPC_ERROR_NETWORK_ID_MANAGER_UNAVAILABLE:
-                                COUT << "RPC_ERROR_NETWORK_ID_MANAGER_UNAVAILABLE peer index:" << i << ENDL;
+                                std::cout
+                                    << "RPC_ERROR_NETWORK_ID_MANAGER_UNAVAILABLE"
+                                    << " peer index:" << i << std::endl;
                                 break;
                             case RakNet::RPC_ERROR_OBJECT_DOES_NOT_EXIST:
-                                COUT << "RPC_ERROR_OBJECT_DOES_NOT_EXIST peer index:" << i << ENDL;
+                                std::cout
+                                    << "RPC_ERROR_OBJECT_DOES_NOT_EXIST peer index:"
+                                    << i << std::endl;
                                 break;
                             case RakNet::RPC_ERROR_FUNCTION_INDEX_OUT_OF_RANGE:
-                                COUT << "RPC_ERROR_FUNCTION_INDEX_OUT_OF_RANGE peer index:" << i << ENDL;
+                                std::cout
+                                    << "RPC_ERROR_FUNCTION_INDEX_OUT_OF_RANGE "
+                                    << " peer index:" << i << std::endl;
                                 break;
                             case RakNet::RPC_ERROR_FUNCTION_NOT_REGISTERED:
-                                COUT << "RPC_ERROR_FUNCTION_NOT_REGISTERED peer index:" << i << ENDL;
+                                std::cout
+                                    << "RPC_ERROR_FUNCTION_NOT_REGISTERED"
+                                    << " peer index:" << i << std::endl;
                                 break;
                             case RakNet::RPC_ERROR_FUNCTION_NO_LONGER_REGISTERED:
-                                COUT << "RPC_ERROR_FUNCTION_NO_LONGER_REGISTERED peer index:" << i << ENDL;
+                                std::cout
+                                    << "RPC_ERROR_FUNCTION_NO_LONGER_REGISTERED"
+                                    << " peer index:" << i << std::endl;
                                 break;
                             case RakNet::RPC_ERROR_CALLING_CPP_AS_C:
-                                COUT << "RPC_ERROR_CALLING_CPP_AS_C peer index:" << i << ENDL;
+                                std::cout
+                                    << "RPC_ERROR_CALLING_CPP_AS_C peer index:"
+                                    << i << std::endl;
                                 break;
                             case RakNet::RPC_ERROR_CALLING_C_AS_CPP:
-                                COUT << "RPC_ERROR_CALLING_C_AS_CPP peer index:" << i << ENDL;
+                                std::cout
+                                    << "RPC_ERROR_CALLING_C_AS_CPP peer index:"
+                                    << i << std::endl;
                                 break;
                         }
                         
-                        COUT << "Function: " << packet->data + 2 << "     peer index:" << i << ENDL;
+                        std::cout << "Function: " << packet->data + 2
+                                  << "     peer index:" << i << std::endl;
                         break;
                     }
                     default:
-                        //COUT << "Unknown id received: " << packet->data[0] << ENDL;
+                        //std::cout << "Unknown id received: "
+                        //            << packet->data[0] << std::endl;
                         break;
                 }
+            }
+            
+            //std::cout << "before" << std::endl;
+            uint64_t allCount = (peerCount-1) * callCount;
+            if (c[i].testCalls.size() < allCount ||
+                c[i].testSlots.size() < allCount ||
+                d[i].testSlots.size() < allCount ||
+                cFuncTestCalls.size() < allCount) {
+                std::cout << "in "
+                          << "\n\tc[i].testCalls.size(): " << c[i].testCalls.size()
+                          << "\n\tc[i].testSlots.size(): " << c[i].testSlots.size()
+                          << "\n\td[i].testSlots.size(): " << d[i].testSlots.size()
+                          << "\n\tcFuncTestCalls.size(): " << cFuncTestCalls.size()
+                          << "\n\tallCount:              " << allCount << std::endl;
+                allready = false;
             }
         }
 
         RakSleep(0);
+        
+        if (allready) {
+            mutex_->lock();
+            testValues.allReady = true;
+            mutex_->unlock();
+        }
     }
 
     testValues.programRunTime = RakNet::GetTimeUS() - programStartTime;
     testValues.AppendCFuncValues(cFuncTestCalls);
     
     for (size_t i = 1; i < peerCount; i++) {
-        testValues.AppendCClassValues(cFuncTestCalls);
+        testValues.AppendCClassValues(c[i].testCalls);
+        
+        testValues.AppendCClassSlotValues(c[i].testSlots);
+        testValues.AppendCClassSlotValues(d[i].testSlots);
     }
     
     testValues.PrintTestSummary();
@@ -389,9 +453,6 @@ int main(int argc, char *argv[]) {
         RakNet::RakPeerInterface::DestroyInstance(rakPeers[i]);
     }
     rpcPlugins.clear();
-    trash.close();
-    
-    delete emptyRpc;
     
     return 1;
 }

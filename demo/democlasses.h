@@ -58,8 +58,13 @@ public:
     virtual void TestSlot() {
         std::cout << "ClassC::TestSlot" << std::endl;
     }
-    virtual void TestSlotTest() {
-        //std::cout << "\033[1;33m     ClassC::TestSlot signal received timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m") << std::endl;
+    
+    virtual void TestSlotTest(uint64_t callNumber, uint64_t callTime) {
+        if (testSlots.find(callNumber) != testSlots.end())
+            std::cout << "ClassC::TestSlotTest already added: " << callNumber << std::endl;
+        
+        std::pair<int, uint64_t> p(callNumber, RakNet::GetTimeUS() - callTime);
+        testSlots.insert(p);
     }
     
     virtual void ClassMemberFunc(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
@@ -68,13 +73,15 @@ public:
                         
     virtual void ClassMemberFuncTest(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
                         ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
-                        uint64_t callNumber, RakNet::RPC3 *rpcFromNetwork);
+                        uint64_t callNumber, uint64_t callTime,
+                        RakNet::RPC3 *rpcFromNetwork);
     
     void ClassMemberFunc2(RakNet::RPC3 *rpcFromNetwork);
     
     int c;
     
     std::map<int, uint64_t> testCalls;
+    std::map<int, uint64_t> testSlots;
 };
 
 class ClassD : public BaseClassA, public RakNet::NetworkIDObject {
@@ -102,11 +109,17 @@ public:
         std::cout << "ClassD::TestSlot" << std::endl;
     }
     
-    virtual void TestSlotTest() {
-        //std::cout << "\033[1;33m     ClassD::TestSlot signal received timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m") << std::endl;
+    virtual void TestSlotTest(uint64_t callNumber, uint64_t callTime) {
+        if (testSlots.find(callNumber) != testSlots.end())
+            std::cout << "ClassD::TestSlotTest already added: " << callNumber << std::endl;
+        
+        std::pair<int, uint64_t> p(callNumber, RakNet::GetTimeUS() - callTime);
+        testSlots.insert(p);
     }
     
     char tenBytes[10];
+    
+    std::map<int, uint64_t> testSlots;
 };
 
 #endif

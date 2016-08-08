@@ -70,23 +70,14 @@ void ClassC::ClassMemberFunc(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
 }
 void ClassC::ClassMemberFuncTest(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
                     ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
-                    uint64_t callNumber, RakNet::RPC3 *rpcFromNetwork) {
-    //BaseClassB::ClassMemberFuncTest(a1, a2, c1, d1, bs1, bs2, callNumber, rpcFromNetwork);
+                    uint64_t callNumber, uint64_t callTime,
+                    RakNet::RPC3 *rpcFromNetwork) {
     
-    if (rpcFromNetwork == 0) {
-        std::pair<int, uint64_t> p(callNumber, RakNet::GetTimeUS());
-        testCalls.insert(p);
-        //std::cout << "ClassC::ClassMemberFuncTest called locally. " <<
-        //    " callNumber: " << callNumber <<
-        //    " time: " << testCalls[callNumber] << std::endl;
-    }
-    else {
-        testCalls[callNumber] = RakNet::GetTimeUS() - testCalls[callNumber];
-        //std::cout << "ClassC::ClassMemberFuncTest called from " <<
-        //    rpcFromNetwork->GetLastSenderAddress().ToString() << "." <<
-        //    " callNumber: " << callNumber <<
-        //    " time: " << testCalls[callNumber] << std::endl;
-    }
+    if (testCalls.find(callNumber) != testCalls.end())
+        std::cout << "ClassC::ClassMemberFuncTest already added: " << callNumber << std::endl;
+    
+    std::pair<int, uint64_t> p(callNumber, RakNet::GetTimeUS() - callTime);
+    testCalls.insert(p);
 }
 
 void ClassC::ClassMemberFunc2(RakNet::RPC3 *rpcFromNetwork) {
