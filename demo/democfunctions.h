@@ -13,6 +13,8 @@
 #define __DEMOCFUNCTIONS_H
 
 #include <iostream>
+#include <map>
+#include <utility>
 
 #include "BitStream.h"
 #include "RPC3.h"
@@ -53,14 +55,23 @@ void CFunc2(ClassC *c1, RakNet::RPC3 *rpcFromNetwork) {
     std::cout << "c1=" << c1->c << std::endl;
 }
 
-void CFuncTest(RakNet::RakString rakString, ClassC *c1,
-                            const char *str, RakNet::RPC3 *rpcFromNetwork) {
+static std::map<int, uint64_t> cFuncTestCalls;
+
+void CFuncTest(RakNet::RakString rakString, ClassC *c1, const char *str,
+                            uint64_t callNumber, RakNet::RPC3 *rpcFromNetwork) {
     if (rpcFromNetwork == 0) {
-        //std::cout << "CFuncTest called locally" << std::endl;
+        std::pair<int, uint64_t> p(callNumber, RakNet::GetTimeUS());
+        cFuncTestCalls.insert(p);
+        //std::cout << "CFuncTest called locally" <<
+        //    " callNumber: " << callNumber <<
+        //    " time: " << cFuncTestCalls[callNumber] << std::endl;
     }
     else {
+        cFuncTestCalls[callNumber] = RakNet::GetTimeUS() - cFuncTestCalls[callNumber];
         //std::cout << "CFuncTest called from " <<
-        //        rpcFromNetwork->GetLastSenderAddress().ToString() << std::endl;
+        //        rpcFromNetwork->GetLastSenderAddress().ToString() << "." <<
+        //    " callNumber: " << callNumber <<
+        //    " time: " << cFuncTestCalls[callNumber] <<  std::endl;
     }
     
     //std::cout << rakString.C_String() << std::endl;

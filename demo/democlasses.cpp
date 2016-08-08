@@ -39,9 +39,9 @@ void BaseClassB::ClassMemberFunc(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
     std::cout << "rs1=" << rs1.C_String() << std::endl;
     std::cout << "rs2=" << rs2.C_String() << std::endl;
 }
-void BaseClassB::ClassMemberFuncTest(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
+/*void BaseClassB::ClassMemberFuncTest(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
                     ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
-                    RakNet::RPC3 *rpcFromNetwork) {
+                    int callNumber, RakNet::RPC3 *rpcFromNetwork) {
     
     if (rpcFromNetwork==0) {
         //std::cout << "BaseClassB::ClassMemberFuncTest called locally" << std::endl;
@@ -56,7 +56,7 @@ void BaseClassB::ClassMemberFuncTest(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
     bs2.Read(rs2);
     //std::cout << rs1.C_String() << std::endl;
     //std::cout << rs2.C_String() << "\033[1;32m    " << RakNet::GetTimeUS() << "     \033[0m" << std::endl;
-}
+}*/
 
 /*
  * ClassC and ClassD derive from NetworkIDObject, so they cannot be passed as
@@ -70,8 +70,23 @@ void ClassC::ClassMemberFunc(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
 }
 void ClassC::ClassMemberFuncTest(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
                     ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
-                    RakNet::RPC3 *rpcFromNetwork) {
-    BaseClassB::ClassMemberFuncTest(a1, a2, c1, d1, bs1, bs2, rpcFromNetwork);
+                    uint64_t callNumber, RakNet::RPC3 *rpcFromNetwork) {
+    //BaseClassB::ClassMemberFuncTest(a1, a2, c1, d1, bs1, bs2, callNumber, rpcFromNetwork);
+    
+    if (rpcFromNetwork == 0) {
+        std::pair<int, uint64_t> p(callNumber, RakNet::GetTimeUS());
+        testCalls.insert(p);
+        //std::cout << "ClassC::ClassMemberFuncTest called locally. " <<
+        //    " callNumber: " << callNumber <<
+        //    " time: " << testCalls[callNumber] << std::endl;
+    }
+    else {
+        testCalls[callNumber] = RakNet::GetTimeUS() - testCalls[callNumber];
+        //std::cout << "ClassC::ClassMemberFuncTest called from " <<
+        //    rpcFromNetwork->GetLastSenderAddress().ToString() << "." <<
+        //    " callNumber: " << callNumber <<
+        //    " time: " << testCalls[callNumber] << std::endl;
+    }
 }
 
 void ClassC::ClassMemberFunc2(RakNet::RPC3 *rpcFromNetwork) {

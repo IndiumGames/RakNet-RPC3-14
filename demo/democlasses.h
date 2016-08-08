@@ -13,6 +13,8 @@
 #define __DEMOCLASSES_H
 
 #include <iostream>
+#include <map>
+#include <utility>
 
 #include "BitStream.h"
 #include "RPC3.h"
@@ -40,9 +42,9 @@ public:
                     ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
                     RakNet::RPC3 *rpcFromNetwork);
     
-    virtual void ClassMemberFuncTest(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
+    /*virtual void ClassMemberFuncTest(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
                     ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
-                    RakNet::RPC3 *rpcFromNetwork);
+                    RakNet::RPC3 *rpcFromNetwork);*/
     
     int b;
 };
@@ -66,11 +68,13 @@ public:
                         
     virtual void ClassMemberFuncTest(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
                         ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
-                        RakNet::RPC3 *rpcFromNetwork);
+                        uint64_t callNumber, RakNet::RPC3 *rpcFromNetwork);
     
     void ClassMemberFunc2(RakNet::RPC3 *rpcFromNetwork);
     
     int c;
+    
+    std::map<int, uint64_t> testCalls;
 };
 
 class ClassD : public BaseClassA, public RakNet::NetworkIDObject {

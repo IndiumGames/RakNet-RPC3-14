@@ -22,6 +22,7 @@
 #include <vector>
 #include <thread>
 #include <mutex>
+#include <numeric>
 
 #include "Kbhit.h"
 #include "BitStream.h"
@@ -57,10 +58,35 @@ struct TestValues {
         
         mseconds = callFunctionsTime / 1000;
         COUT << "Time used to call all functions: " << mseconds << " ms\n" << ENDL;
+        
+        mseconds = std::accumulate(
+            cClassValues.begin(), cClassValues.end(), 0,
+            [] (int value, const std::map<int, uint64_t>::value_type& p) {
+                return value + p.second;
+            }) / cClassValues.size();
+        COUT << "Average for ClassC::ClassMemberFuncTest call by RPC: " << mseconds << " us\n" << ENDL;
+        
+        mseconds = std::accumulate(
+            cFuncValues.begin(), cFuncValues.end(), 0,
+            [] (int value, const std::map<int, uint64_t>::value_type& p) {
+                return value + p.second;
+            }) / cFuncValues.size();
+        COUT << "Average for CFuncTest call by RPC: " << mseconds << " us\n" << ENDL;
     }
     
-    int callFunctionsTime;
-    int programRunTime;
+    void AppendCClassValues(std::map<int, uint64_t> values) {
+        cClassValues.insert(values.begin(), values.end());
+    }
+    
+    void AppendCFuncValues(std::map<int, uint64_t> values) {
+        cFuncValues.insert(values.begin(), values.end());
+    }
+    
+    uint64_t callFunctionsTime;
+    uint64_t programRunTime;
+    
+    std::map<int, uint64_t> cClassValues;
+    std::map<int, uint64_t> cFuncValues;
     
     bool allReady;
 };
@@ -138,7 +164,7 @@ int main(int argc, char *argv[]) {
     }
 
     TestValues testValues;
-    int programStartTime = RakNet::GetTimeUS();
+    uint64_t programStartTime = RakNet::GetTimeUS();
     
     std::unique_ptr<std::recursive_mutex> mutex_(new std::recursive_mutex());
 
@@ -259,12 +285,15 @@ int main(int argc, char *argv[]) {
                         if (!clientCount) {
                             // If all clients connected.
                             
-                            serverThread = std::thread([&mutex_, &testValues, serverAPtr, serverBPtr, serverCPtr, serverDPtr, serverRpc, emptyRpc, peerCount, callCount] () {
+                            serverThread = std::thread([&mutex_, &testValues, &c, serverAPtr, serverBPtr, serverCPtr, serverDPtr, serverRpc, emptyRpc, peerCount, callCount] () {
                                 //COUT << "\033[0;31m     Starting server thread to do RPC calls, timestamp: " << RakNet::GetTimeUS() << "     \033[0m" << ENDL;
                                 unsigned int count = callCount;
-                                int startTime = RakNet::GetTimeUS();
+                                uint64_t startTime = RakNet::GetTimeUS();
                                 while (count) {
-                                    for (size_t i = 0; i < peerCount - 1; i++) {
+                                    for (size_t i = 1; i < peerCount; i++) {
+                                    
+                                        uint64_t callNumber = i * callCount + count;
+                                    
                                         //COUT << "\033[0;35m    CCCCCCCCCCCCCCCC " << count << "." << i << "     \033[0m" << ENDL;
                                         RakNet::BitStream testBitStream1, testBitStream2;
                                         
@@ -274,22 +303,23 @@ int main(int argc, char *argv[]) {
                                         RakNet::BitStream *testBitStream1Ptr = &testBitStream1;
                                         
                                         serverCPtr->ClassMemberFuncTest(serverAPtr, *serverAPtr, serverCPtr, serverDPtr, testBitStream1Ptr,
-                                                                                testBitStream2, emptyRpc);
+                                                                                testBitStream2, callNumber, emptyRpc);
                                         serverRpc->CallCPP("&ClassC::ClassMemberFuncTest", serverCPtr->GetNetworkID(),
                                                                 serverAPtr, *serverAPtr, serverCPtr, serverDPtr,
-                                                                testBitStream1Ptr, testBitStream2, emptyRpc);
+                                                                testBitStream1Ptr, testBitStream2, callNumber, emptyRpc);
                                         
                                         
                                         std::string strC("\033[1;32m     C Function call timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m"));
                                         RakNet::RakString rs(strC.c_str());
                                         const char *str = "\033[1;32m     C Remote call timestamp:      \033[0m";
                                         
-                                        CFuncTest(rs, serverCPtr, str, emptyRpc);
-                                        serverRpc->CallC("CFuncTest", rs, serverCPtr, str, emptyRpc);
+                                        CFuncTest(rs, serverCPtr, str, callNumber, emptyRpc);
+                                        serverRpc->CallC("CFuncTest", rs, serverCPtr, str, callNumber, emptyRpc);
                                                 
                                         
                                         //COUT << "\033[1;33m     TestSlot signal sent timestamp: " + std::to_string(RakNet::GetTimeUS()) + std::string("     \033[0m") << ENDL;
                                         serverRpc->Signal("TestSlotTest");
+                                        
                                     }
                                     count--;
                                     //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -345,6 +375,12 @@ int main(int argc, char *argv[]) {
     }
 
     testValues.programRunTime = RakNet::GetTimeUS() - programStartTime;
+    testValues.AppendCFuncValues(cFuncTestCalls);
+    
+    for (size_t i = 1; i < peerCount; i++) {
+        testValues.AppendCClassValues(cFuncTestCalls);
+    }
+    
     testValues.PrintTestSummary();
 
     for (std::size_t i = 0; i < peerCount; i++) {
