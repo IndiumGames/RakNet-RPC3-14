@@ -30,9 +30,10 @@ void CFunc(RakNet::RakString rakString, ClassC *c1,
         std::cout << "CFunc called locally" << std::endl;
     }
     else {
-        std::cout << "CFunc called from " <<
-                rpcFromNetwork->GetLastSenderAddress().ToString() <<
-                "  timestamp: " << rpcFromNetwork->GetLastSenderTimestamp() << std::endl;
+        std::cout << "CFunc called from "
+                  << rpcFromNetwork->GetLastSenderAddress().ToString()
+                  << "  timestamp: " << rpcFromNetwork->GetLastSenderTimestamp()
+                  << std::endl;
     }
     
     std::cout << "rakString=" << rakString.C_String() << std::endl;
@@ -47,9 +48,10 @@ void CFunc2(ClassC *c1, RakNet::RPC3 *rpcFromNetwork) {
         std::cout << "CFunc2 called locally" << std::endl;
     }
     else {
-        std::cout << "CFunc2 called from " <<
-                rpcFromNetwork->GetLastSenderAddress().ToString() <<
-                "  timestamp: " << rpcFromNetwork->GetLastSenderTimestamp() << std::endl;
+        std::cout << "CFunc2 called from "
+                  << rpcFromNetwork->GetLastSenderAddress().ToString()
+                  << "  timestamp: " << rpcFromNetwork->GetLastSenderTimestamp()
+                  << std::endl;
     }
     
     std::cout << "c1=" << c1->c << std::endl;

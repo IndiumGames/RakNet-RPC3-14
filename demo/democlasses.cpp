@@ -24,13 +24,13 @@ void BaseClassB::ClassMemberFunc(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
         std::cout << "BaseClassB::ClassMemberFunc called locally" << std::endl;
     }
     else {
-        std::cout << "BaseClassB::ClassMemberFunc called from " <<
-                rpcFromNetwork->GetLastSenderAddress().ToString() <<
-                "  timestamp: " << rpcFromNetwork->GetLastSenderTimestamp() << std::endl;
+        std::cout << "BaseClassB::ClassMemberFunc called from "
+                  << rpcFromNetwork->GetLastSenderAddress().ToString()
+                  << "  timestamp: " << rpcFromNetwork->GetLastSenderTimestamp()
+                  << std::endl;
     }
     
-    std::cout << "a1=" << a1->a << " a2=" << a2.a <<
-                                            " c1=" << c1->c << std::endl;
+    std::cout << "a1=" << a1->a << " a2=" << a2.a << " c1=" << c1->c << std::endl;
     std::cout << "d1::Verify=" << d1->Verify() << std::endl;
     
     RakNet::RakString rs1, rs2;
@@ -39,24 +39,6 @@ void BaseClassB::ClassMemberFunc(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
     std::cout << "rs1=" << rs1.C_String() << std::endl;
     std::cout << "rs2=" << rs2.C_String() << std::endl;
 }
-/*void BaseClassB::ClassMemberFuncTest(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
-                    ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
-                    int callNumber, RakNet::RPC3 *rpcFromNetwork) {
-    
-    if (rpcFromNetwork==0) {
-        //std::cout << "BaseClassB::ClassMemberFuncTest called locally" << std::endl;
-    }
-    else {
-        //std::cout << "BaseClassB::ClassMemberFuncTest called from " <<
-        //        rpcFromNetwork->GetLastSenderAddress().ToString() << std::endl;
-    }
-    
-    RakNet::RakString rs1, rs2;
-    bs1->Read(rs1);
-    bs2.Read(rs2);
-    //std::cout << rs1.C_String() << std::endl;
-    //std::cout << rs2.C_String() << "\033[1;32m    " << RakNet::GetTimeUS() << "     \033[0m" << std::endl;
-}*/
 
 /*
  * ClassC and ClassD derive from NetworkIDObject, so they cannot be passed as
@@ -74,7 +56,8 @@ void ClassC::ClassMemberFuncTest(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
                     RakNet::RPC3 *rpcFromNetwork) {
     
     if (testCalls.find(callNumber) != testCalls.end())
-        std::cout << "ClassC::ClassMemberFuncTest already added: " << callNumber << std::endl;
+        std::cout << "ClassC::ClassMemberFuncTest already added: "
+                  << callNumber << std::endl;
     
     std::pair<int, uint64_t> p(callNumber, RakNet::GetTimeUS() - callTime);
     testCalls.insert(p);
@@ -82,4 +65,51 @@ void ClassC::ClassMemberFuncTest(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
 
 void ClassC::ClassMemberFunc2(RakNet::RPC3 *rpcFromNetwork) {
     std::cout << "ClassC::ClassMemberFunc2" << std::endl;
+}
+
+
+void ClassC::TestSlot() {
+    std::cout << "ClassC::TestSlot" << std::endl;
+}
+
+void ClassC::TestSlotTest(uint64_t callNumber, uint64_t callTime) {
+    if (testSlots.find(callNumber) != testSlots.end())
+        std::cout << "ClassC::TestSlotTest already added: "
+                  << callNumber << std::endl;
+    
+    std::pair<int, uint64_t> p(callNumber, RakNet::GetTimeUS() - callTime);
+    testSlots.insert(p);
+}
+
+
+ClassD::ClassD() : BaseClassA(), RakNet::NetworkIDObject() {
+    for (int i=0; i < 10; i++) {
+        tenBytes[i]=i;
+    }
+}
+
+bool ClassD::Verify() {
+    for (int i=0; i < 10; i++) {
+        if (tenBytes[i]!=i) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+    return false;
+}
+
+void ClassD::TestSlot() {
+    std::cout << "ClassD::TestSlot" << std::endl;
+}
+
+void ClassD::TestSlotTest(uint64_t callNumber, uint64_t callTime) {
+    if (testSlots.find(callNumber) != testSlots.end()) {
+        std::cout << "ClassD::TestSlotTest already added: "
+                  << callNumber << std::endl;
+    }
+    
+    std::pair<int, uint64_t> p(callNumber, RakNet::GetTimeUS() - callTime);
+    testSlots.insert(p);
 }

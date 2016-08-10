@@ -44,40 +44,41 @@ struct TestValues {
     TestValues() : allReady(false) {}
     
     void PrintTestSummary() {
-        float mseconds = 0;
+        uint64_t mseconds = 0;
+        uint64_t useconds = 0;
         std::cout << "Summary for the performance test:\n" << std::endl;
         
         mseconds = programRunTime / 1000;
         std::cout << "Time used to run the test program: "
-                  << mseconds << " ms\n" << std::endl;
+                  << mseconds << " milliseconds\n" << std::endl;
         
         mseconds = callFunctionsTime / 1000;
         std::cout << "Time used to call all functions: "
-                  << mseconds << " ms\n" << std::endl;
+                  << mseconds << " milliseconds\n" << std::endl;
         
-        mseconds = std::accumulate(
-            cClassValues.begin(), cClassValues.end(), 0,
-            [] (int value, const std::map<int, uint64_t>::value_type& p) {
-                return value + p.second;
-            }) / cClassValues.size() / 1000;
-        std::cout << "Average for ClassC::ClassMemberFuncTest call by RPC: "
-                  << mseconds << " ms\n" << std::endl;
-        
-        mseconds = std::accumulate(
-            cFuncValues.begin(), cFuncValues.end(), 0,
-            [] (int value, const std::map<int, uint64_t>::value_type& p) {
-                return value + p.second;
-            }) / cFuncValues.size() / 1000;
-        std::cout << "Average for CFuncTest call by RPC: "
-                  << mseconds << " ms\n" << std::endl;
-        
-        mseconds = std::accumulate(
+        useconds = std::accumulate(
             cClassSlotValues.begin(), cClassSlotValues.end(), 0,
             [] (int value, const std::map<int, uint64_t>::value_type& p) {
                 return value + p.second;
-            }) / cClassSlotValues.size() / 1000;
-        std::cout << "Average for ClassC::TestSlotTest call by RPC: "
-                  << mseconds << " ms\n" << std::endl;
+            }) / cClassSlotValues.size();
+        std::cout << "Average for TestSlotTest call by RPC: "
+                  << useconds << " microseconds\n" << std::endl;
+        
+        useconds = std::accumulate(
+            cClassValues.begin(), cClassValues.end(), 0,
+            [] (int value, const std::map<int, uint64_t>::value_type& p) {
+                return value + p.second;
+            }) / cClassValues.size();
+        std::cout << "Average for ClassC::ClassMemberFuncTest call by RPC: "
+                  << useconds << " microseconds\n" << std::endl;
+        
+        useconds = std::accumulate(
+            cFuncValues.begin(), cFuncValues.end(), 0,
+            [] (int value, const std::map<int, uint64_t>::value_type& p) {
+                return value + p.second;
+            }) / cFuncValues.size();
+        std::cout << "Average for CFuncTest call by RPC: "
+                  << useconds << " microseconds" << std::endl;
     }
     
     void AppendCClassSlotValues(std::map<int, uint64_t> values) {
@@ -113,7 +114,6 @@ void serverThread(std::recursive_mutex *mutex_, TestValues *testValues,
     while (count) {
         for (size_t i = 1; i < peerCount; i++) {
             uint64_t callNumber = i * callCount + count;
-            std::cout << "callNumber: " << callNumber << std::endl;
         
             RakNet::BitStream testBitStream1, testBitStream2;
             testBitStream1.Write("CPP TEST STRING");
@@ -416,12 +416,17 @@ int main(int argc, char *argv[]) {
                 c[i].testSlots.size() < allCount ||
                 d[i].testSlots.size() < allCount ||
                 cFuncTestCalls.size() < allCount) {
-                std::cout << "in "
-                          << "\n\tc[i].testCalls.size(): " << c[i].testCalls.size()
-                          << "\n\tc[i].testSlots.size(): " << c[i].testSlots.size()
-                          << "\n\td[i].testSlots.size(): " << d[i].testSlots.size()
-                          << "\n\tcFuncTestCalls.size(): " << cFuncTestCalls.size()
-                          << "\n\tallCount:              " << allCount << std::endl;
+                /*std::cout << "in "
+                      << "\n\tc[" << i << "].testCalls.size(): "
+                      << c[i].testCalls.size()
+                      << "\n\tc[" << i << "].testSlots.size(): "
+                      << c[i].testSlots.size()
+                      << "\n\td[" << i << "].testSlots.size(): "
+                      << d[i].testSlots.size()
+                      << "\n\tcFuncTestCalls.size(): "
+                      << cFuncTestCalls.size()
+                      << "\n\tallCount:              "
+                      << allCount << std::endl;*/
                 allready = false;
             }
         }
@@ -433,6 +438,8 @@ int main(int argc, char *argv[]) {
             testValues.allReady = true;
             mutex_->unlock();
         }
+        
+        allready = true;
     }
 
     testValues.programRunTime = RakNet::GetTimeUS() - programStartTime;

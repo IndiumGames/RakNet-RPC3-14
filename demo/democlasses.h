@@ -42,10 +42,6 @@ public:
                     ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
                     RakNet::RPC3 *rpcFromNetwork);
     
-    /*virtual void ClassMemberFuncTest(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
-                    ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
-                    RakNet::RPC3 *rpcFromNetwork);*/
-    
     int b;
 };
 
@@ -55,17 +51,9 @@ class ClassC
 public:
     ClassC() :BaseClassA(), BaseClassB(), RakNet::NetworkIDObject(), c(3) {}
     
-    virtual void TestSlot() {
-        std::cout << "ClassC::TestSlot" << std::endl;
-    }
+    virtual void TestSlot();
     
-    virtual void TestSlotTest(uint64_t callNumber, uint64_t callTime) {
-        if (testSlots.find(callNumber) != testSlots.end())
-            std::cout << "ClassC::TestSlotTest already added: " << callNumber << std::endl;
-        
-        std::pair<int, uint64_t> p(callNumber, RakNet::GetTimeUS() - callTime);
-        testSlots.insert(p);
-    }
+    virtual void TestSlotTest(uint64_t callNumber, uint64_t callTime);
     
     virtual void ClassMemberFunc(BaseClassA *a1, BaseClassA &a2, ClassC *c1,
                         ClassD *d1, RakNet::BitStream *bs1, RakNet::BitStream &bs2,
@@ -87,35 +75,13 @@ public:
 class ClassD : public BaseClassA, public RakNet::NetworkIDObject {
     
 public:
-    ClassD() : BaseClassA(), RakNet::NetworkIDObject() {
-        for (int i=0; i < 10; i++) {
-            tenBytes[i]=i;
-        }
-    }
+    ClassD();
     
-    bool Verify() {
-        for (int i=0; i < 10; i++) {
-            if (tenBytes[i]!=i) {
-                return false;
-            }
-            else {
-                return true;
-            }
-        }
-        return false;
-    }
+    bool Verify();
     
-    virtual void TestSlot() {
-        std::cout << "ClassD::TestSlot" << std::endl;
-    }
+    virtual void TestSlot();
     
-    virtual void TestSlotTest(uint64_t callNumber, uint64_t callTime) {
-        if (testSlots.find(callNumber) != testSlots.end())
-            std::cout << "ClassD::TestSlotTest already added: " << callNumber << std::endl;
-        
-        std::pair<int, uint64_t> p(callNumber, RakNet::GetTimeUS() - callTime);
-        testSlots.insert(p);
-    }
+    virtual void TestSlotTest(uint64_t callNumber, uint64_t callTime);
     
     char tenBytes[10];
     

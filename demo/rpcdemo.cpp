@@ -83,7 +83,8 @@ int main(int argc, char *argv[]) {
         // Send out a LAN broadcast to find other instances on the same computer
         rakPeer->Ping("255.255.255.255", 60000, true, 0);
 
-        std::cout << "Client started. Will automatically connect to running servers." << std::endl;
+        std::cout << "Client started. Will automatically connect to running servers."
+                  << std::endl;
     }
     
     // Add RPC3 plugin.
@@ -204,19 +205,24 @@ int main(int argc, char *argv[]) {
                     // Recipient system returned an error
                     switch (packet->data[1]) {
                         case RakNet::RPC_ERROR_NETWORK_ID_MANAGER_UNAVAILABLE:
-                            std::cout << "RPC_ERROR_NETWORK_ID_MANAGER_UNAVAILABLE" << std::endl;
+                            std::cout << "RPC_ERROR_NETWORK_ID_MANAGER_UNAVAILABLE"
+                                      << std::endl;
                             break;
                         case RakNet::RPC_ERROR_OBJECT_DOES_NOT_EXIST:
-                            std::cout << "RPC_ERROR_OBJECT_DOES_NOT_EXIST" << std::endl;
+                            std::cout << "RPC_ERROR_OBJECT_DOES_NOT_EXIST"
+                                      << std::endl;
                             break;
                         case RakNet::RPC_ERROR_FUNCTION_INDEX_OUT_OF_RANGE:
-                            std::cout << "RPC_ERROR_FUNCTION_INDEX_OUT_OF_RANGE" << std::endl;
+                            std::cout << "RPC_ERROR_FUNCTION_INDEX_OUT_OF_RANGE"
+                                      << std::endl;
                             break;
                         case RakNet::RPC_ERROR_FUNCTION_NOT_REGISTERED:
-                            std::cout << "RPC_ERROR_FUNCTION_NOT_REGISTERED" << std::endl;
+                            std::cout << "RPC_ERROR_FUNCTION_NOT_REGISTERED"
+                                      << std::endl;
                             break;
                         case RakNet::RPC_ERROR_FUNCTION_NO_LONGER_REGISTERED:
-                            std::cout << "RPC_ERROR_FUNCTION_NO_LONGER_REGISTERED" << std::endl;
+                            std::cout << "RPC_ERROR_FUNCTION_NO_LONGER_REGISTERED"
+                                      << std::endl;
                             break;
                         case RakNet::RPC_ERROR_CALLING_CPP_AS_C:
                             std::cout << "RPC_ERROR_CALLING_CPP_AS_C" << std::endl;
