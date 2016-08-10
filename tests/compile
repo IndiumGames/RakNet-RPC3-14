@@ -6,17 +6,19 @@ if [ "$1" = "boost" ]; then
         -I./RakNet/Source/ \
         -I./RakNet/DependentExtensions/RPC3/ \
         -I./boost_1_43_0/ \
-        ./demo/*.cpp \
+        ./demo/democlasses.cpp \
+        ./tests/rpctests.cpp \
         ./RakNet/Source/*.cpp \
         ./RakNet/DependentExtensions/RPC3/*.cpp \
-        -o demo/bin/raknet-demo-boost
+        -o tests/bin/raknet-tests-boost
 else
     clang++ -m64 -pthread -pipe -std=c++14 -g \
         -I./ \
         -I./demo/ \
         -I./RakNet/Source/ \
-        ./demo/*.cpp \
+        ./demo/democlasses.cpp \
+        ./tests/rpctests.cpp \
         ./RakNet/Source/*.cpp \
         ./*.cpp \
-        -o demo/bin/raknet-demo
+        -o tests/bin/raknet-tests
 fi

@@ -16,6 +16,9 @@
 #include <iterator>
 #include <vector>
 
+#include <iostream>
+#include <cxxabi.h>
+
 #include "NetworkIDManager.h"
 #include "NetworkIDObject.h"
 #include "BitStream.h"
@@ -172,6 +175,7 @@ struct ReadPtr
 	static inline void apply(RakNet::BitStream &bitStream, const unsigned char *&t) {applyStr(bitStream, (char *&) t);}
 	static inline void applyStr(RakNet::BitStream &bitStream, char *&t)
 	{
+		
 		RakNet::RakString rs;
 		bitStream >> rs;
 		size_t len = rs.GetLength()+1;
@@ -220,7 +224,7 @@ struct ReadWithNetworkIDPtr
 	{
 //		printf("ReadWithNetworkIDPtr\n");
 		// Read the network ID
-
+		
 		bool isNull;
 		args.bitStream->Read(isNull);
 		if (isNull)
@@ -411,6 +415,9 @@ struct RpcInvoker<R(Args...)> {
 		
 		typedef typename std::remove_reference<decltype(std::get<I>(args))>::type arg_type_no_ref;
 		
+		char *realname = abi::__cxa_demangle(typeid(arg_type_no_ref).name(), 0, 0, 0);
+		realname = abi::__cxa_demangle(typeid(std::get<I>(args)).name(), 0, 0, 0);
+		
 		ProcessArgType<arg_type_no_ref>::type::apply(functionArgs, std::get<I>(args));
         
 		RpcInvoker<decltype(func)>::template
@@ -485,8 +492,7 @@ struct WritePtr
 	template <typename T2>
 	static inline void applyArray(RakNet::BitStream &bitStream, T2 *t) {bitStream << (*t);}
 	template <typename T2>
-	static inline void apply(RakNet::BitStream &bitStream, T2 *t) {
-		bitStream << (*t);}
+	static inline void apply(RakNet::BitStream &bitStream, T2 *t) {bitStream << (*t);}
 
 	static inline void apply(RakNet::BitStream &bitStream, char *t) {bitStream << t;}
 
@@ -511,6 +517,7 @@ struct WriteWithNetworkIDPtr
 {
 	static void apply(RakNet::BitStream &bitStream, T& t)
 	{
+		
 		bool isNull;
 		isNull=(t==0);
 		bitStream.Write(isNull);
@@ -568,6 +575,7 @@ struct WriteWithoutNetworkIDPtr
 {
 	static void apply(RakNet::BitStream &bitStream, T& t)
 	{
+		
 		bool isNull;
 		isNull=(t==0);
 		bitStream.Write(isNull);
@@ -697,6 +705,7 @@ struct RpcCall {
 			Call(Rpc *rpc, const char *identifier, RakNet::BitStream &bitStream,
 				bool &result, int argCount, bool isCall, Arg &arg, const Args&... args) {
 		typedef typename std::remove_reference<decltype(arg)>::type arg_type_no_ref;
+		
 		_RPC3::SerializeCallParameterBranch<arg_type_no_ref>::type::apply(bitStream, arg);
         
 		RpcCall::Call(rpc, identifier, bitStream, result, argCount, isCall, args...);
